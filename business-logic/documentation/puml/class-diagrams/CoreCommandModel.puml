@@ -19,6 +19,8 @@ interface CompositeCommand {
 	{method} +createContext ( input : Input ) : Context
 	{method} +executeDoNested ( context : Context ) : Context
 	{method} +executeDoNested ( context : Context , listener : StateChangedListener ) : Context
+	{method} +executeDoNestedWithNotification ( context : Context , listener : StateChangedListener ) : Context
+	{method} +executeDoNestedWithoutNotification ( context : Context ) : Context
 	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
 	{method} +executeUndoNested ( context : Context ) : Context
 	{method}  {abstract} +fromNest () : Collection

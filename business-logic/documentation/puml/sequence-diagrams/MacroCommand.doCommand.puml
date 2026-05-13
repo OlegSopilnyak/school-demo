@@ -1,0 +1,70 @@
+[plantuml,MacroCommand.doCommand.puml.png,png]
+----
+@startuml
+
+participant MacroCommand
+participant Context
+participant CompositeCommand
+
+activate MacroCommand
+	MacroCommand -> Context : getRedoParameter
+	activate Context
+		Context --> MacroCommand : Input
+	deactivate Context
+	MacroCommand -> CompositeCommand : executeNested
+	activate CompositeCommand
+		CompositeCommand --> MacroCommand : Deque
+	deactivate CompositeCommand
+	MacroCommand -> MacroCommand : updateMacroCommandParameter
+	activate MacroCommand
+		MacroCommand -> Context : getRedoParameter
+		activate Context
+			Context --> MacroCommand : Input
+		deactivate Context
+		MacroCommand --> MacroCommand : void
+	deactivate MacroCommand
+	MacroCommand -> MacroCommand : afterExecutionProcessing
+	activate MacroCommand
+		MacroCommand -> MacroCommand : finalCommandResult
+		activate MacroCommand
+			MacroCommand -> Context : getResult
+			activate Context
+				Context --> MacroCommand : Optional
+			deactivate Context
+			MacroCommand --> MacroCommand : Object
+		deactivate MacroCommand
+		MacroCommand -> Context : getException
+		activate Context
+			Context --> MacroCommand : Exception
+		deactivate Context
+		MacroCommand -> Context : failed
+		activate Context
+			Context --> MacroCommand : Context
+		deactivate Context
+		MacroCommand -> MacroCommand : rollbackNested
+		activate MacroCommand
+			MacroCommand --> MacroCommand : Deque
+		deactivate MacroCommand
+		MacroCommand -> MacroCommand : updateMacroCommandParameter
+		activate MacroCommand
+			MacroCommand -> Context : getRedoParameter
+			activate Context
+				Context --> MacroCommand : Input
+			deactivate Context
+			MacroCommand --> MacroCommand : void
+		deactivate MacroCommand
+		MacroCommand --> MacroCommand : void
+	deactivate MacroCommand
+	MacroCommand -> Context : failed
+	activate Context
+		Context --> MacroCommand : Context
+	deactivate Context
+	MacroCommand -> Context : failed
+	activate Context
+		Context --> MacroCommand : Context
+	deactivate Context
+deactivate MacroCommand
+
+@enduml
+
+----

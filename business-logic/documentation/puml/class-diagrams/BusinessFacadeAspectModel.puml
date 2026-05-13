@@ -1,0 +1,34 @@
+[plantuml,BusinessFacadeAspectModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class ActionFacadeAspect {
+	{field} {static} -log : Logger
+	{method} +facadeAfterAdvise ( jp : JoinPoint ) : void
+	{method} +facadeBeforeAdvise ( jp : JoinPoint ) : void
+}
+
+
+interface AdviseDelegate {
+	{method} +afterCall ( joinPoint : JoinPoint ) : void
+	{method} +beforeCall ( joinPoint : JoinPoint ) : void
+}
+
+
+class BusinessFacadeAdviseDelegate {
+	{field} {static} -DO_ACTION_METHOD_NAME : String
+	{field} {static} -log : Logger
+	{method} +beforeCall ( joinPoint : JoinPoint ) : void
+}
+
+
+
+
+ActionFacadeAspect "1" o-- "0..*"  AdviseDelegate : delegates
+BusinessFacadeAdviseDelegate ..|>  AdviseDelegate
+
+hide fields
+
+@enduml
+----

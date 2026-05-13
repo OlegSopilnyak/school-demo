@@ -1,0 +1,40 @@
+[plantuml,ParallelCommandsTask.executeDoNested.puml.png,png]
+----
+@startuml
+
+participant ParallelCommandsTask
+participant ActionContext
+participant CompletableFuture
+participant Objects
+participant Executor
+
+activate ParallelCommandsTask
+	ParallelCommandsTask -> ActionContext : current
+	activate ActionContext
+		ActionContext --> ParallelCommandsTask : ActionContext
+	deactivate ActionContext
+	ParallelCommandsTask -> CompletableFuture : supplyAsync
+	activate CompletableFuture
+		CompletableFuture -> Objects : requireNonNull
+		activate Objects
+			Objects --> CompletableFuture : Object
+		deactivate Objects
+		CompletableFuture -> CompletableFuture : asyncSupplyStage
+		activate CompletableFuture
+			CompletableFuture -> Objects : requireNonNull
+			activate Objects
+				Objects --> CompletableFuture : Object
+			deactivate Objects
+			CompletableFuture -> Executor : execute
+			activate Executor
+				Executor --> CompletableFuture : void
+			deactivate Executor
+			CompletableFuture --> CompletableFuture : CompletableFuture
+		deactivate CompletableFuture
+		CompletableFuture --> ParallelCommandsTask : CompletableFuture
+	deactivate CompletableFuture
+deactivate ParallelCommandsTask
+
+@enduml
+
+----

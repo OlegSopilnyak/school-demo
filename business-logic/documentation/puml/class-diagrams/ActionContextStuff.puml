@@ -1,0 +1,32 @@
+[plantuml,ActionContextStuff.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class ActionContext {
+	{field} {static} -CONTEXT : ThreadLocal
+	{field} +actionId : String
+	{field} +actionProcessorFacade : String
+	{field} +entryPointMethod : String
+	{field} +lasts : Duration
+	{field} +startedAt : Instant
+	{method}  {static} +current () : ActionContext
+	{method} +finish () : void
+	{method}  {static} +release () : void
+	{method}  {static} +setup ( facade : String , action : String ) : ActionContext
+}
+
+
+interface BusinessFacade {
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method}  {abstract} +getName () : String
+	{method} +validActions () : List
+}
+
+
+
+
+
+
+@enduml
+----

@@ -1,0 +1,112 @@
+[plantuml,CommandActionExecutor.processMessageAction.puml.png,png]
+----
+@startuml
+
+participant CommandActionExecutor
+participant CommandMessage
+participant Context
+participant RootCommand
+participant CommandExecutable
+
+activate CommandActionExecutor
+	CommandActionExecutor -> CommandMessage : getContext
+	activate CommandMessage
+		CommandMessage --> CommandActionExecutor : Context
+	deactivate CommandMessage
+	CommandActionExecutor -> Context : failed
+	activate Context
+		Context --> CommandActionExecutor : Context
+	deactivate Context
+	CommandActionExecutor -> Context : getCommand
+	activate Context
+		Context --> CommandActionExecutor : RootCommand
+	deactivate Context
+	CommandActionExecutor -> CommandMessage : getDirection
+	activate CommandMessage
+		CommandMessage --> CommandActionExecutor : CommandMessage$Direction
+	deactivate CommandMessage
+	CommandActionExecutor -> Context : getCommand
+	activate Context
+		Context --> CommandActionExecutor : RootCommand
+	deactivate Context
+	CommandActionExecutor -> RootCommand : doCommand
+	activate RootCommand
+		RootCommand -> Context : isReady
+		activate Context
+			Context -> Context : stateIs
+			activate Context
+				Context --> Context : boolean
+			deactivate Context
+			Context --> RootCommand : boolean
+		deactivate Context
+		RootCommand -> RootCommand : self
+		activate RootCommand
+			RootCommand --> RootCommand : RootCommand
+		deactivate RootCommand
+		RootCommand -> CommandExecutable : executeDo
+		activate CommandExecutable
+			CommandExecutable --> RootCommand : void
+		deactivate CommandExecutable
+		RootCommand -> RootCommand : afterExecute
+		activate RootCommand
+			RootCommand -> Context : isDone
+			activate Context
+				Context -> Context : stateIs
+				activate Context
+					Context --> Context : boolean
+				deactivate Context
+				Context --> RootCommand : boolean
+			deactivate Context
+			RootCommand -> Context : getResult
+			activate Context
+				Context --> RootCommand : Optional
+			deactivate Context
+			RootCommand -> Context : setResult
+			activate Context
+				Context --> RootCommand : void
+			deactivate Context
+			RootCommand --> RootCommand : void
+		deactivate RootCommand
+		RootCommand --> CommandActionExecutor : void
+	deactivate RootCommand
+	CommandActionExecutor -> Context : getCommand
+	activate Context
+		Context --> CommandActionExecutor : RootCommand
+	deactivate Context
+	CommandActionExecutor -> RootCommand : undoCommand
+	activate RootCommand
+		RootCommand -> Context : isDone
+		activate Context
+			Context -> Context : stateIs
+			activate Context
+				Context --> Context : boolean
+			deactivate Context
+			Context --> RootCommand : boolean
+		deactivate Context
+		RootCommand -> RootCommand : self
+		activate RootCommand
+			RootCommand --> RootCommand : RootCommand
+		deactivate RootCommand
+		RootCommand -> CommandExecutable : executeUndo
+		activate CommandExecutable
+			CommandExecutable --> RootCommand : void
+		deactivate CommandExecutable
+		RootCommand -> RootCommand : afterRollback
+		activate RootCommand
+			RootCommand -> Context : setResult
+			activate Context
+				Context --> RootCommand : void
+			deactivate Context
+			RootCommand --> RootCommand : void
+		deactivate RootCommand
+		RootCommand --> CommandActionExecutor : void
+	deactivate RootCommand
+	CommandActionExecutor -> Context : failed
+	activate Context
+		Context --> CommandActionExecutor : Context
+	deactivate Context
+deactivate CommandActionExecutor
+
+@enduml
+
+----

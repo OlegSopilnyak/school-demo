@@ -1,0 +1,80 @@
+[plantuml,BusinessFacade.doActionAndResult.puml.png,png]
+----
+@startuml
+
+participant FacultyFacadeImpl
+participant ActionFacade
+participant CommandsFactory
+participant CommandActionExecutor
+participant CommandMessage
+
+activate FacultyFacadeImpl
+	FacultyFacadeImpl -> FacultyFacadeImpl : internalCreateOrUpdate
+	activate FacultyFacadeImpl
+		FacultyFacadeImpl -> ActionFacade : executeCommand
+		activate ActionFacade
+			ActionFacade -> ActionFacade : defaultDoOnError
+			activate ActionFacade
+				ActionFacade --> ActionFacade : Consumer
+			deactivate ActionFacade
+			ActionFacade -> ActionFacade : executeCommand
+			activate ActionFacade
+				ActionFacade -> CommandsFactory : makeCommandContext
+				activate CommandsFactory
+					CommandsFactory -> CommandsFactory : command
+					activate CommandsFactory
+						CommandsFactory --> CommandsFactory : RootCommand
+					deactivate CommandsFactory
+					CommandsFactory --> ActionFacade : Context
+				deactivate CommandsFactory
+				ActionFacade -> CommandsFactory : getName
+				activate CommandsFactory
+					CommandsFactory --> ActionFacade : String
+				deactivate CommandsFactory
+				ActionFacade -> ActionFacade : throwFor
+				activate ActionFacade
+					ActionFacade --> ActionFacade : Object
+				deactivate ActionFacade
+				ActionFacade -> ActionFacade : getActionExecutor
+				activate ActionFacade
+					ActionFacade --> ActionFacade : CommandActionExecutor
+				deactivate ActionFacade
+				ActionFacade -> CommandActionExecutor : commitAction
+				activate CommandActionExecutor
+					CommandActionExecutor -> CommandActionExecutor : buildMessage
+					activate CommandActionExecutor
+						CommandActionExecutor --> CommandActionExecutor : CommandMessage
+					deactivate CommandActionExecutor
+					CommandActionExecutor -> CommandActionExecutor : processActionCommand
+					activate CommandActionExecutor
+						CommandActionExecutor -> CommandMessage : getContext
+						activate CommandMessage
+							CommandMessage --> CommandActionExecutor : Context
+						deactivate CommandMessage
+						CommandActionExecutor -> CommandMessage : getDirection
+						activate CommandMessage
+							CommandMessage --> CommandActionExecutor : CommandMessage$Direction
+						deactivate CommandMessage
+						CommandActionExecutor --> CommandActionExecutor : CommandMessage
+					deactivate CommandActionExecutor
+					CommandActionExecutor -> CommandMessage : getContext
+					activate CommandMessage
+						CommandMessage --> CommandActionExecutor : Context
+					deactivate CommandMessage
+					CommandActionExecutor --> ActionFacade : Context
+				deactivate CommandActionExecutor
+				ActionFacade -> ActionFacade : createThrowFor
+				activate ActionFacade
+					ActionFacade --> ActionFacade : Supplier
+				deactivate ActionFacade
+				ActionFacade --> ActionFacade : Optional
+			deactivate ActionFacade
+			ActionFacade --> FacultyFacadeImpl : Optional
+		deactivate ActionFacade
+		FacultyFacadeImpl --> FacultyFacadeImpl : Optional
+	deactivate FacultyFacadeImpl
+deactivate FacultyFacadeImpl
+
+@enduml
+
+----

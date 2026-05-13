@@ -11,10 +11,6 @@ abstract class BaseCommandMessage {
 	{field} +actionContext : ActionContext
 	{field} +context : Context
 	{field} +correlationId : String
-	{method} #canEqual ( other : Object ) : boolean
-	{method} +equals ( o : Object ) : boolean
-	{method} +hashCode () : int
-	{method} +toString () : String
 	{method} +validate () : void
 }
 
@@ -28,13 +24,11 @@ interface CommandMessage {
 
 
 class DoCommandMessage {
-	{method}  {static} +builder () : DoCommandMessageBuilder
 	{method} +getDirection () : Direction
 }
 
 
 class UndoCommandMessage {
-	{method}  {static} +builder () : UndoCommandMessageBuilder
 	{method} +getDirection () : Direction
 }
 
@@ -46,6 +40,7 @@ CommandMessage *--  CommandMessage : EMPTY
 DoCommandMessage --|>  BaseCommandMessage
 UndoCommandMessage --|>  BaseCommandMessage
 
+hide fields
 
 @enduml
 ----

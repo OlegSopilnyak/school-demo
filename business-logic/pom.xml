@@ -131,6 +131,47 @@
                     UML Class Diagrams
                     -->
                     <execution>
+                        <id>generate-common-action-context-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>ActionContextStuff.puml</outputFilename>
+                            <whitelistRegexp>oleg.sopilnyak.test.school.common.business.facade.(ActionContext|BusinessFacade)</whitelistRegexp>
+                            <methodBlacklistRegexp>equals|hashCode|toString|builder|install|decode.*|is.*|throw.*</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-logic-facades-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>BusinessLogicFacades.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.school.common.business.facade</scanPackage>
+                            </scanPackages>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
+                            <methodBlacklistRegexp>decode.*|is.*|throw.*</methodBlacklistRegexp>
+                            <fieldBlacklistRegexp>ACTION_IDS|SUBSPACE|NAMESPACE</fieldBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <blacklistRegexp>.*ActionContext.*</blacklistRegexp>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>generate-common-business-logic-command-class-diagram</id>
                         <goals>
                             <goal>generate</goal>
@@ -230,6 +271,7 @@
                                 <scanPackage>oleg.sopilnyak.test.service.command.executable.core.executor</scanPackage>
                             </scanPackages>
                             <blacklistRegexp>.*(Builder|State)</blacklistRegexp>
+                            <methodBlacklistRegexp>getLogger</methodBlacklistRegexp>
                             <hideFields>true</hideFields>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
@@ -250,10 +292,11 @@
                                 <scanPackage>oleg.sopilnyak.test.service.message</scanPackage>
                             </scanPackages>
                             <blacklistRegexp>.*(Builder|Payload|Direction|Extra)</blacklistRegexp>
-                            <!--                            <hideFields>true</hideFields>-->
+                            <methodBlacklistRegexp>equals|hashCode|toString|builder</methodBlacklistRegexp>
+                            <hideFields>true</hideFields>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
-                            <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
                     <execution>
@@ -270,6 +313,8 @@
                                 <scanPackage>oleg.sopilnyak.test.service.message.payload</scanPackage>
                             </scanPackages>
                             <blacklistRegexp>.*(Builder|Extra)</blacklistRegexp>
+                            <methodBlacklistRegexp>equals|canEqual|hashCode|builder|toString</methodBlacklistRegexp>
+                            <fieldBlacklistRegexp>ITEM.*</fieldBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <useShortClassNames>true</useShortClassNames>
                             <additionalPlantUmlConfigs>
@@ -278,7 +323,257 @@
                             <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
                         </configuration>
                     </execution>
-                </executions>
+                    <execution>
+                        <id>generate-business-facade-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>BusinessFacadesModel.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.service.facade</scanPackage>
+                            </scanPackages>
+                            <blacklistRegexp>.*(ActionFacadeAspect|AdviseDelegate)</blacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
+                            <methodBlacklistRegexp>.*(getLogger.*|toPayload)</methodBlacklistRegexp>
+                            <hideFields>true</hideFields>
+                            <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-facade-aspect-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>BusinessFacadeAspectModel.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.service.facade.aspect</scanPackage>
+                            </scanPackages>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <hideFields>true</hideFields>
+                            <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <!--
+                    UML Sequence Diagrams
+                    -->
+                    <execution>
+                        <id>generate-business-action-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>BusinessFacade.doActionAndResult.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.facade.organization.impl.FacultyFacadeImpl</startClass>
+                            <startMethod>internalCreateOrUpdate</startMethod>
+                            <classBlacklistRegexp>.*(Builder|Logger|Input|Output|IOBase|Context|RootCommand|NestedCommand|OrganizationFacade|BusinessFacade)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLogger|decode.*|builder)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-command-action-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>CommandActionExecutor.processActionCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor</startClass>
+                            <startMethod>processActionCommand</startMethod>
+                            <classBlacklistRegexp>.*(Builder|Logger|NestedCommand)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|is.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-detailed-command-action-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>CommandMessagesExchangeExecutorAdapter.processActionCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandMessagesExchangeExecutorAdapter</startClass>
+                            <startMethod>processActionCommand</startMethod>
+<!--                            <classBlacklistRegexp>.*(Builder|Logger|RootCommand|NestedCommand)</classBlacklistRegexp>-->
+                            <classBlacklistRegexp>.*(Logger|RootCommand|NestedCommand)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLogger)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-message-action-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>CommandActionExecutor.processMessageAction.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor</startClass>
+                            <startMethod>processActionCommand</startMethod>
+                            <classBlacklistRegexp>.*(Logger|NestedCommand)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-message-action-facade-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>ActionFacade.executeCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.facade.ActionFacade</startClass>
+                            <startMethod>executeCommand</startMethod>
+                            <classBlacklistRegexp>.*(Builder|Logger|NestedCommand|Context.*|History|IOBase)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|builder)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-simple-command-create-context-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>RootCommand.createContext.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.RootCommand</startClass>
+                            <startMethod>createContext</startMethod>
+                            <classBlacklistRegexp>.*(Builder)</classBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-simple-command-do-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>RootCommand.doCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.RootCommand</startClass>
+                            <startMethod>doCommand</startMethod>
+                            <classBlacklistRegexp>.*(Logger)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-simple-command-undo-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>RootCommand.undoCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.RootCommand</startClass>
+                            <startMethod>undoCommand</startMethod>
+                            <classBlacklistRegexp>.*(Logger)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-create-context-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.createContext.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
+                            <startMethod>buildCommandContextFor</startMethod>
+                            <classBlacklistRegexp>.*(Logger)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-do-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.doCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
+                            <startMethod>executeDo</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase|Input|ObjectUtils|NestedCommand|CommandContext|MacroCommandParameter|NestedContextDeque)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-undo-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.undoCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
+                            <startMethod>executeUndo</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-nested-do-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.executeDoNested.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
+                            <startMethod>executeDoNestedWithNotification</startMethod>
+                            <classBlacklistRegexp>.*(Builder|Logger|IOBase|History|NestedCommand|RootCommand|ActionContext)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|builder)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+            </executions>
                 <!--
                     plantuml-generator: creates a puml file in target/generated-docs folder
                     End of plugin definition

@@ -1,0 +1,119 @@
+[plantuml,BusinessFacadesModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+interface ActionFacade {
+	{method}  {static} +createThrowFor ( commandId : String ) : Supplier
+	{method} +defaultDoOnError ( commandId : String ) : Consumer
+	{method} +executeCommand ( commandId : String , factory : CommandsFactory , input : Input ) : Optional
+	{method} +executeCommand ( commandId : String , factory : CommandsFactory , input : Input , doThisOnError : Consumer ) : Optional
+	{method} +failedButNoExceptionStored ( commandId : String ) : void
+	{method}  {abstract} +getActionExecutor () : CommandActionExecutor
+	{method} +logSomethingWentWrong ( exception : Exception , commandId : String ) : void
+	{method}  {static} +throwFor ( commandId : String , e : Exception ) : Object
+}
+
+
+class AuthorityPersonFacadeImpl {
+	{field} {static} -LOGIN_KEY : String
+	{field} {static} -PASSWORD_KEY : String
+	{field} {static} -log : Logger
+	{field} -toPayload : UnaryOperator
+	{method} +organizationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+class CoursesFacadeImpl {
+	{field} {static} +COURSE_ID_KEY : String
+	{field} {static} +STUDENT_ID_KEY : String
+	{field} -actionExecutor : CommandActionExecutor
+	{field} -factory : CommandsFactory
+	{field} {static} -log : Logger
+	{field} -toPayload : UnaryOperator
+	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+abstract class EducationFacadeImpl {
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+class FacultyFacadeImpl {
+	{field} {static} -log : Logger
+	{field} -toPayload : UnaryOperator
+	{method} +organizationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+abstract class OrganizationFacadeImpl {
+	{field} -actionExecutor : CommandActionExecutor
+	{field} #factory : CommandsFactory
+}
+
+
+abstract class PersonProfileFacadeImpl {
+	{field} -actionExecutor : CommandActionExecutor
+	{field} -factory : CommandsFactory
+	{method} #internalCreateOrUpdate ( actionId : String , argument : Object ) : Optional
+	{method} #internalDelete ( actionId : String , argument : Object ) : Void
+	{method} #internalFindById ( actionId : String , argument : Object ) : Optional
+	{method} +personProfileAction ( actionId : String , parameters : Object[] ) : Object
+	{method}  {abstract} #profileAction ( actionId : String , argument : Object ) : Object
+	{method} #unknownActionId ( actionId : String ) : Object
+}
+
+
+class PrincipalProfileFacadeImpl {
+	{field} {static} -log : Logger
+	{field} -payloadOperator : UnaryOperator
+	{method} #profileAction ( actionId : String , argument : Object ) : Object
+}
+
+
+class StudentProfileFacadeImpl {
+	{field} {static} -log : Logger
+	{field} -payloadOperator : UnaryOperator
+	{method} #profileAction ( actionId : String , argument : Object ) : Object
+}
+
+
+class StudentsFacadeImpl {
+	{field} -actionExecutor : CommandActionExecutor
+	{field} -factory : CommandsFactory
+	{field} {static} -log : Logger
+	{field} -toPayload : UnaryOperator
+	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+class StudentsGroupFacadeImpl {
+	{field} {static} -log : Logger
+	{field} -toPayload : UnaryOperator
+	{method} +organizationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+
+
+AuthorityPersonFacadeImpl --|>  OrganizationFacadeImpl
+CoursesFacadeImpl --|>  EducationFacadeImpl
+CoursesFacadeImpl ..|>  ActionFacade
+FacultyFacadeImpl --|>  OrganizationFacadeImpl
+OrganizationFacadeImpl ..|>  ActionFacade
+PersonProfileFacadeImpl ..|>  ActionFacade
+PrincipalProfileFacadeImpl --|>  PersonProfileFacadeImpl
+StudentProfileFacadeImpl --|>  PersonProfileFacadeImpl
+StudentsFacadeImpl --|>  EducationFacadeImpl
+StudentsFacadeImpl ..|>  ActionFacade
+StudentsGroupFacadeImpl --|>  OrganizationFacadeImpl
+
+hide fields
+
+@enduml
+----

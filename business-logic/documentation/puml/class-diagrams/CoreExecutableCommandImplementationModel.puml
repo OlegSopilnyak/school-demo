@@ -12,7 +12,6 @@ interface CommandActionExecutor {
 	{field} {static} +isInvalidMessage : Predicate
 	{field} {static} +isValidMessageDirection : Predicate
 	{method} +commitAction ( actionContext : ActionContext , commandContext : Context ) : Context
-	{method}  {abstract} +getLogger () : Logger
 	{method}  {abstract} +initialize () : void
 	{method} +processActionCommand ( message : CommandMessage ) : CommandMessage
 	{method} +rollbackAction ( actionContext : ActionContext , commandContext : Context ) : Context
@@ -52,7 +51,6 @@ interface CommandThroughMessagesExecutor {
 	{field} {static} +JSON_CONTEXT_MODULE_BEAN_NAME : String
 	{field} {static} +REQUEST_MESSAGES_PROCESSOR_NAME : String
 	{field} {static} +RESPONSE_MESSAGES_PROCESSOR_NAME : String
-	{method}  {abstract} +getLogger () : Logger
 	{method} +initialize () : void
 	{method} +shutdown () : void
 }
@@ -62,7 +60,6 @@ class LocalQueueCommandExecutor {
 	{field} -executor : ExecutorService
 	{field} {static} -log : Logger
 	{field} -objectMapper : ObjectMapper
-	{method} +getLogger () : Logger
 	{method} #initializeTakenMessagesExecutor () : void
 	{method} #makeMessageInProgress ( correlationId : String , original : CommandMessage ) : boolean
 	{method} #messageWatchdogFor ( correlationId : String ) : Optional
@@ -96,7 +93,6 @@ interface MessagesProcessor {
 	{method} +activateProcessor () : void
 	{method} +deActivateProcessor () : void
 	{method} +doingMainLoop () : void
-	{method}  {abstract} +getLogger () : Logger
 	{method}  {abstract} +getProcessorName () : String
 	{method}  {abstract} +isEmpty () : boolean
 	{method}  {abstract} +isOwnerActive () : boolean

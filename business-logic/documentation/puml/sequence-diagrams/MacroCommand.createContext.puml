@@ -1,0 +1,25 @@
+[plantuml,MacroCommand.createContext.puml.png,png]
+----
+@startuml
+
+participant CompositeCommand
+participant NestedCommand
+
+activate CompositeCommand
+	CompositeCommand -> NestedCommand : acceptPreparedContext
+	activate NestedCommand
+		NestedCommand --> CompositeCommand : Context
+	deactivate NestedCommand
+	CompositeCommand -> NestedCommand : getId
+	activate NestedCommand
+		NestedCommand --> CompositeCommand : String
+	deactivate NestedCommand
+	CompositeCommand -> NestedCommand : createFailedContext
+	activate NestedCommand
+		NestedCommand --> CompositeCommand : Context
+	deactivate NestedCommand
+deactivate CompositeCommand
+
+@enduml
+
+----

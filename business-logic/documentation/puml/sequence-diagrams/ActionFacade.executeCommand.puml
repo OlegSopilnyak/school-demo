@@ -1,0 +1,109 @@
+[plantuml,ActionFacade.executeCommand.puml.png,png]
+----
+@startuml
+
+participant ActionFacade
+participant CommandsFactory
+participant RootCommand
+participant CommandActionExecutor
+participant CommandMessage
+participant CommandExecutable
+
+activate ActionFacade
+	ActionFacade -> ActionFacade : defaultDoOnError
+	activate ActionFacade
+		ActionFacade --> ActionFacade : Consumer
+	deactivate ActionFacade
+	ActionFacade -> ActionFacade : executeCommand
+	activate ActionFacade
+		ActionFacade -> CommandsFactory : makeCommandContext
+		activate CommandsFactory
+			CommandsFactory -> CommandsFactory : command
+			activate CommandsFactory
+				CommandsFactory --> CommandsFactory : RootCommand
+			deactivate CommandsFactory
+			CommandsFactory -> RootCommand : createContext
+			activate RootCommand
+				RootCommand --> CommandsFactory : Context
+			deactivate RootCommand
+			CommandsFactory --> ActionFacade : Context
+		deactivate CommandsFactory
+		ActionFacade -> CommandsFactory : getName
+		activate CommandsFactory
+			CommandsFactory --> ActionFacade : String
+		deactivate CommandsFactory
+		ActionFacade -> ActionFacade : throwFor
+		activate ActionFacade
+			ActionFacade --> ActionFacade : Object
+		deactivate ActionFacade
+		ActionFacade -> ActionFacade : getActionExecutor
+		activate ActionFacade
+			ActionFacade --> ActionFacade : CommandActionExecutor
+		deactivate ActionFacade
+		ActionFacade -> CommandActionExecutor : commitAction
+		activate CommandActionExecutor
+			CommandActionExecutor -> CommandActionExecutor : buildMessage
+			activate CommandActionExecutor
+				CommandActionExecutor --> CommandActionExecutor : CommandMessage
+			deactivate CommandActionExecutor
+			CommandActionExecutor -> CommandActionExecutor : processActionCommand
+			activate CommandActionExecutor
+				CommandActionExecutor -> CommandMessage : getContext
+				activate CommandMessage
+					CommandMessage --> CommandActionExecutor : Context
+				deactivate CommandMessage
+				CommandActionExecutor -> CommandMessage : getDirection
+				activate CommandMessage
+					CommandMessage --> CommandActionExecutor : CommandMessage$Direction
+				deactivate CommandMessage
+				CommandActionExecutor -> RootCommand : doCommand
+				activate RootCommand
+					RootCommand -> RootCommand : self
+					activate RootCommand
+						RootCommand --> RootCommand : RootCommand
+					deactivate RootCommand
+					RootCommand -> CommandExecutable : executeDo
+					activate CommandExecutable
+						CommandExecutable --> RootCommand : void
+					deactivate CommandExecutable
+					RootCommand -> RootCommand : afterExecute
+					activate RootCommand
+						RootCommand --> RootCommand : void
+					deactivate RootCommand
+					RootCommand --> CommandActionExecutor : void
+				deactivate RootCommand
+				CommandActionExecutor -> RootCommand : undoCommand
+				activate RootCommand
+					RootCommand -> RootCommand : self
+					activate RootCommand
+						RootCommand --> RootCommand : RootCommand
+					deactivate RootCommand
+					RootCommand -> CommandExecutable : executeUndo
+					activate CommandExecutable
+						CommandExecutable --> RootCommand : void
+					deactivate CommandExecutable
+					RootCommand -> RootCommand : afterRollback
+					activate RootCommand
+						RootCommand --> RootCommand : void
+					deactivate RootCommand
+					RootCommand --> CommandActionExecutor : void
+				deactivate RootCommand
+				CommandActionExecutor --> CommandActionExecutor : CommandMessage
+			deactivate CommandActionExecutor
+			CommandActionExecutor -> CommandMessage : getContext
+			activate CommandMessage
+				CommandMessage --> CommandActionExecutor : Context
+			deactivate CommandMessage
+			CommandActionExecutor --> ActionFacade : Context
+		deactivate CommandActionExecutor
+		ActionFacade -> ActionFacade : createThrowFor
+		activate ActionFacade
+			ActionFacade --> ActionFacade : Supplier
+		deactivate ActionFacade
+		ActionFacade --> ActionFacade : Optional
+	deactivate ActionFacade
+deactivate ActionFacade
+
+@enduml
+
+----

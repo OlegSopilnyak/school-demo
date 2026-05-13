@@ -120,24 +120,12 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
         return executeDoNested(context, null);
     }
 
-    /**
-     * To execute DO of nested command with the nested context and context-state-change listener through action-executor
-     *
-     * @param <N>      the type of nested command execution result
-     * @param context  the context used for use with the nested command
-     * @param listener which will be notified by new states after do execution
-     * @return context after nested command do
-     * @see CompositeCommand#executeNested(Deque, Context.StateChangedListener)
-     * @see CommandActionExecutor#commitAction(ActionContext, Context)
-     * @see Context#getHistory()
-     * @see Context.LifeCycleHistory#states()
-     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
-     */
-    default <N> Context<N> executeDoNested(final Context<N> context, final Context.StateChangedListener listener) {
-        if (isNull(listener)) {
-            // execute nested context using action executor
-            return getActionExecutor().commitAction(ActionContext.current(), context);
-        }
+    default <N> Context<N> executeDoNestedWithoutNotification(final Context<N> context) {
+        // execute nested context using action executor
+        return getActionExecutor().commitAction(ActionContext.current(), context);
+    }
+
+    default <N> Context<N> executeDoNestedWithNotification(final Context<N> context, final Context.StateChangedListener listener) {
         // store states before do execution
         final Deque<Context.State> statesBefore = context.getHistory().states();
         //
@@ -169,6 +157,25 @@ public interface CompositeCommand<T> extends RootCommand<T>, PrepareNestedContex
         }
         // returning command-context after nested command execution
         return result;
+    }
+
+    /**
+     * To execute DO of nested command with the nested context and context-state-change listener through action-executor
+     *
+     * @param <N>      the type of nested command execution result
+     * @param context  the context used for use with the nested command
+     * @param listener which will be notified by new states after do execution
+     * @return context after nested command do
+     * @see CompositeCommand#executeNested(Deque, Context.StateChangedListener)
+     * @see CommandActionExecutor#commitAction(ActionContext, Context)
+     * @see Context#getHistory()
+     * @see Context.LifeCycleHistory#states()
+     * @see Context.StateChangedListener#stateChanged(Context, Context.State, Context.State)
+     */
+    default <N> Context<N> executeDoNested(final Context<N> context, final Context.StateChangedListener listener) {
+        return isNull(listener)
+                ? executeDoNestedWithoutNotification(context)
+                : executeDoNestedWithNotification(context, listener);
     }
 
     /**

@@ -1,0 +1,129 @@
+[plantuml,BusinessLogicFacades.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+interface AuthorityPersonFacade {
+	{field} {static} +CREATE_MACRO : String
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +DELETE_MACRO : String
+	{field} {static} +FIND_ALL : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +LOGIN : String
+	{field} {static} +LOGOUT : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface BusinessFacade {
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method}  {abstract} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface CoursesFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +FIND_NOT_REGISTERED : String
+	{field} {static} +FIND_REGISTERED : String
+	{field} {static} +REGISTER : String
+	{field} {static} +UN_REGISTER : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface EducationFacade {
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+interface FacultyFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +FIND_ALL : String
+	{field} {static} +FIND_BY_ID : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface OrganizationFacade {
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method} +organizationAction ( actionId : String , parameters : Object[] ) : Object
+}
+
+
+interface PersonProfileFacade {
+	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
+	{method}  {abstract} +personProfileAction ( actionId : String , parameters : Object[] ) : Object
+	{method} +toLong ( argument : Object ) : Long
+	{method} +toPersonProfile ( argument : Object ) : PersonProfile
+}
+
+
+interface PrincipalProfileFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE_BY_ID : String
+	{field} {static} +FIND_BY_ID : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface StudentProfileFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE_BY_ID : String
+	{field} {static} +FIND_BY_ID : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface StudentsFacade {
+	{field} {static} +CREATE_MACRO : String
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +DELETE_MACRO : String
+	{field} {static} +FIND_BY_ID : String
+	{field} {static} +FIND_ENROLLED : String
+	{field} {static} +FIND_NOT_ENROLLED : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+interface StudentsGroupFacade {
+	{field} {static} +CREATE_OR_UPDATE : String
+	{field} {static} +DELETE : String
+	{field} {static} +FIND_ALL : String
+	{field} {static} +FIND_BY_ID : String
+	{method} +getName () : String
+	{method} +validActions () : List
+}
+
+
+
+
+AuthorityPersonFacade ..|>  OrganizationFacade
+CoursesFacade ..|>  EducationFacade
+EducationFacade ..|>  BusinessFacade
+FacultyFacade ..|>  OrganizationFacade
+OrganizationFacade ..|>  BusinessFacade
+PersonProfileFacade ..|>  BusinessFacade
+PrincipalProfileFacade ..|>  PersonProfileFacade
+StudentProfileFacade ..|>  PersonProfileFacade
+StudentsFacade ..|>  EducationFacade
+StudentsGroupFacade ..|>  OrganizationFacade
+
+
+@enduml
+----

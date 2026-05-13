@@ -1,0 +1,22 @@
+[plantuml,RootCommand.createContext.puml.png,png]
+----
+@startuml
+
+participant RootCommand
+participant CommandContext
+participant Context
+
+activate RootCommand
+	RootCommand -> CommandContext : builder
+	activate CommandContext
+		CommandContext --> RootCommand : CommandContext$CommandContextBuilder
+	deactivate CommandContext
+	RootCommand -> Context : setState
+	activate Context
+		Context --> RootCommand : void
+	deactivate Context
+deactivate RootCommand
+
+@enduml
+
+----

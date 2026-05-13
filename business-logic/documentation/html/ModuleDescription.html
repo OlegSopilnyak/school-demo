@@ -448,7 +448,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_intro">1. Intro</a></li>
 <li><a href="#_module_parts">2. Module parts</a>
 <ul class="sectlevel2">
-<li><a href="#_the_modules_data_model">2.1. The Module&#8217;s Data Model</a></li>
+<li><a href="#_the_data_model_of_the_module">2.1. The Data Model of The Module</a></li>
+<li><a href="#_the_business_logic_facades_of_the_module">2.2. The Business Logic Facades of The Module</a></li>
+<li><a href="#_business_basic_action_execution_logic_of_the_module">2.3. Business Basic Action Execution Logic of The Module</a></li>
 </ul>
 </li>
 </ul>
@@ -459,61 +461,225 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_intro">1. Intro</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Business Logic Command&#8217;s Oriented Module.</p>
+<p>The <strong>Module</strong> is implementing main <strong>Business Logic</strong> of the <strong>Application</strong>. The <strong><em>Ingress Module</em></strong> <em>stuff</em> is communicating with it through <strong>BusinessFacade</strong> set. The implementation in module is executing particular <strong>Action</strong> in order to implement the <strong>Application</strong>'s feature. Each <strong>Action</strong> is executing in the <strong>ActionContext</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/ActionContextStuff.puml.png.png" alt="ActionContextStuff.puml" width="855" height="242">
+</div>
+<div class="title">Figure 1. <strong>IngressModule&#8217;s</strong> The Communication Through Stuff</div>
 </div>
 <div class="paragraph">
-<p>Uses <strong>Command</strong> plus <strong>Strategy</strong> and <strong>Factory</strong> design patterns.</p>
+<p>The Controller of <strong>ingress module</strong> launches <strong>Action</strong> through the particular <strong>business facade</strong> according to the feature&#8217;s Domain.</p>
 </div>
+<details>
+<summary class="title">Business Facades by <strong>Domain Features</strong></summary>
+<div class="content">
+<div class="paragraph">
+<p><strong>Note!</strong><br>
+The <strong>actionId</strong> values are declared in the particular facade.<br>
+The <strong>Action</strong> is executing using <strong>doActionAndResult(actionId , actionParameters)</strong> using particular <strong>Facade</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/BusinessLogicFacades.puml.png.png" alt="BusinessLogicFacades.puml" width="1244" height="1342">
+</div>
+<div class="title">Figure 2. Business Facades are Used for Interaction with Module</div>
+</div>
+</div>
+</details>
 </div>
 </div>
 <div class="sect1">
 <h2 id="_module_parts">2. Module parts</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_the_modules_data_model">2.1. The Module&#8217;s Data Model</h3>
+<h3 id="_the_data_model_of_the_module">2.1. The Data Model of The Module</h3>
 <details>
-<summary class="title">Model</summary>
+<summary class="title">Business Action through CommandMessage Architecture</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/CoreExecutableCommandMessageModel.puml.png.png" alt="CoreExecutableCommandMessageModel.puml" width="397" height="318">
+</div>
+<div class="title">Figure 3. Business Action CommandMessage Architecture</div>
+</div>
+<hr>
+<div class="paragraph">
+<p>Execution is going through <strong>CommandActionExecutor</strong> Service</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><em>commitAction(actionContext , commandContext)</em> for <strong>DO</strong> Action</p>
+</li>
+<li>
+<p><em>rollbackAction(actionContext , commandContext)</em> for <strong>UNDO</strong> Action</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Both of them are executing through <em>processActionCommand(commandMessage)</em> of the Service.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/CoreExecutableCommandImplementationModel.puml.png.png" alt="CoreExecutableCommandImplementationModel.puml" width="1529" height="1127">
+</div>
+<div class="title">Figure 4. Business Action Execution Architecture</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title">Operational Data Model of the Module</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/BusinessExecutableCommandMessageModel.puml.png.png" alt="BusinessExecutableCommandMessageModel.puml" width="755" height="783">
+</div>
+<div class="title">Figure 5. Business Action Data Model</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title">Basic Command Architecture</summary>
 <div class="content">
 <div class="imageblock">
 <div class="content">
 <img src="./images/CoreCommandModel.puml.png.png" alt="CoreCommandModel.puml" width="1505" height="956">
 </div>
-<div class="title">Figure 1. Core Commands Data Model</div>
+<div class="title">Figure 6. Core Commands Architecture</div>
 </div>
 <hr>
 <div class="imageblock">
 <div class="content">
 <img src="./images/CoreNestedCommandModel.puml.png.png" alt="CoreNestedCommandModel.puml" width="1045" height="498">
 </div>
-<div class="title">Figure 2. Core Nested Commands Data Model (using in CompositeCommand see above)</div>
+<div class="title">Figure 7. Core Nested Commands Architecture (uses in <strong>CompositeCommand</strong>, please see above)</div>
+</div>
+<hr>
+<div class="imageblock">
+<div class="content">
+<img src="./images/CoreCommandImplementationModel.puml.png.png" alt="CoreCommandImplementationModel.puml" width="2035" height="990">
+</div>
+<div class="title">Figure 8. Basic Commands Implementation Architecture</div>
 </div>
 <hr>
 <div class="imageblock">
 <div class="content">
 <img src="./images/CommonCommandModel.puml.png.png" alt="CommonCommandModel.puml" width="1062" height="1042">
 </div>
-<div class="title">Figure 3. Concrete Commands According Core Commands Data Model</div>
+<div class="title">Figure 9. The Commands According to the <strong>Action Domain</strong></div>
 </div>
+</div>
+</details>
 <hr>
+</div>
+<div class="sect2">
+<h3 id="_the_business_logic_facades_of_the_module">2.2. The Business Logic Facades of The Module</h3>
+<details>
+<summary class="title">Business Action Facades Model</summary>
+<div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="./images/CoreCommandImplementationModel.puml.png.png" alt="CoreCommandImplementationModel.puml" width="2035" height="955">
+<img src="./images/BusinessFacadesModel.puml.png.png" alt="BusinessFacadesModel.puml" width="1811" height="499">
 </div>
-<div class="title">Figure 4. Basic Commands Implementation Data Model</div>
+<div class="title">Figure 10. Business Logic Facades Model</div>
 </div>
-<hr>
 <div class="imageblock">
 <div class="content">
-<img src="./images/CoreExecutableCommandImplementationModel.puml.png.png" alt="CoreExecutableCommandImplementationModel.puml" width="1529" height="1198">
+<img src="./images/BusinessFacadeAspectModel.puml.png.png" alt="BusinessFacadeAspectModel.puml" width="591" height="224">
 </div>
-<div class="title">Figure 5. Command Action Execution Engine Data Model</div>
+<div class="title">Figure 11. Business Action Aspect Model</div>
 </div>
+</div>
+</details>
 <hr>
+</div>
+<div class="sect2">
+<h3 id="_business_basic_action_execution_logic_of_the_module">2.3. Business Basic Action Execution Logic of The Module</h3>
+<details>
+<summary class="title">Business MessageAction Execution</summary>
+<div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="./images/CoreExecutableCommandMessageModel.puml.png.png" alt="CoreExecutableCommandMessageModel.puml" width="597" height="552">
+<img src="./images/BusinessFacade.doActionAndResult.puml.png.png" alt="BusinessFacade.doActionAndResult.puml" width="889" height="1298">
 </div>
-<div class="title">Figure 6. Command Action Message Data Model</div>
+<div class="title">Figure 12. Business Logic Do Action And Get Result Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/CommandActionExecutor.processActionCommand.puml.png.png" alt="CommandActionExecutor.processActionCommand.puml" width="717" height="1289">
+</div>
+<div class="title">Figure 13. CommandActionExecutor.processActionCommand Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/CommandMessagesExchangeExecutorAdapter.processActionCommand.puml.png.png" alt="CommandMessagesExchangeExecutorAdapter.processActionCommand.puml" width="1186" height="1706">
+</div>
+<div class="title">Figure 14. CommandThroughMessagesExecutor.processActionCommand Sequence</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title">Business ActionCommand Execution</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/ActionFacade.executeCommand.puml.png.png" alt="ActionFacade.executeCommand.puml" width="978" height="1801">
+</div>
+<div class="title">Figure 15. Business Logic Execute MessageAction Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/CommandActionExecutor.processMessageAction.puml.png.png" alt="CommandActionExecutor.processMessageAction.puml" width="717" height="1732">
+</div>
+<div class="title">Figure 16. Business Logic Execute MessageAction Sequence</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title">Simple Application Command Execution</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/RootCommand.createContext.puml.png.png" alt="RootCommand.createContext.puml" width="490" height="214">
+</div>
+<div class="title">Figure 17. Simple Command.createContext Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/RootCommand.doCommand.puml.png.png" alt="RootCommand.doCommand.puml" width="517" height="864">
+</div>
+<div class="title">Figure 18. Simple Command.doCommand Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/RootCommand.undoCommand.puml.png.png" alt="RootCommand.undoCommand.puml" width="517" height="596">
+</div>
+<div class="title">Figure 19. Simple Command.undoCommand Sequence</div>
+</div>
+</div>
+</details>
+<details>
+<summary class="title">Composite Application Command Execution</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.createContext.puml.png.png" alt="MacroCommand.createContext.puml" width="309" height="275">
+</div>
+<div class="title">Figure 20. CompositeCommand.createContext for Nested Command Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.executeDoNested.puml.png.png" alt="MacroCommand.executeDoNested.puml" width="679" height="1081">
+</div>
+<div class="title">Figure 21. CompositeCommand.executeDoNested Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.undoCommand.puml.png.png" alt="MacroCommand.undoCommand.puml" width="666" height="1289">
+</div>
+<div class="title">Figure 22. CompositeCommand.undoCommand Sequence</div>
 </div>
 </div>
 </details>
@@ -524,7 +690,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-11 13:47:29 +0300
+Last updated 2026-05-13 14:27:36 +0300
 </div>
 </div>
 </body>

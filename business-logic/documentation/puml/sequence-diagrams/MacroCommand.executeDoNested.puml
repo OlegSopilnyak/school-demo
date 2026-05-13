@@ -1,0 +1,75 @@
+[plantuml,MacroCommand.executeDoNested.puml.png,png]
+----
+@startuml
+
+participant CompositeCommand
+participant Context
+participant CommandActionExecutor
+participant CommandMessage
+
+activate CompositeCommand
+	CompositeCommand -> Context : getHistory
+	activate Context
+		Context --> CompositeCommand : Context$LifeCycleHistory
+	deactivate Context
+	CompositeCommand -> CompositeCommand : getActionExecutor
+	activate CompositeCommand
+		CompositeCommand --> CompositeCommand : CommandActionExecutor
+	deactivate CompositeCommand
+	CompositeCommand -> CommandActionExecutor : commitAction
+	activate CommandActionExecutor
+		CommandActionExecutor -> CommandActionExecutor : buildMessage
+		activate CommandActionExecutor
+			CommandActionExecutor --> CommandActionExecutor : CommandMessage
+		deactivate CommandActionExecutor
+		CommandActionExecutor -> CommandActionExecutor : processActionCommand
+		activate CommandActionExecutor
+			CommandActionExecutor -> CommandMessage : getContext
+			activate CommandMessage
+				CommandMessage --> CommandActionExecutor : Context
+			deactivate CommandMessage
+			CommandActionExecutor -> Context : failed
+			activate Context
+				Context --> CommandActionExecutor : Context
+			deactivate Context
+			CommandActionExecutor -> Context : getCommand
+			activate Context
+				Context --> CommandActionExecutor : RootCommand
+			deactivate Context
+			CommandActionExecutor -> CommandMessage : getDirection
+			activate CommandMessage
+				CommandMessage --> CommandActionExecutor : CommandMessage$Direction
+			deactivate CommandMessage
+			CommandActionExecutor -> Context : getCommand
+			activate Context
+				Context --> CommandActionExecutor : RootCommand
+			deactivate Context
+			CommandActionExecutor -> Context : getCommand
+			activate Context
+				Context --> CommandActionExecutor : RootCommand
+			deactivate Context
+			CommandActionExecutor -> Context : failed
+			activate Context
+				Context --> CommandActionExecutor : Context
+			deactivate Context
+			CommandActionExecutor --> CommandActionExecutor : CommandMessage
+		deactivate CommandActionExecutor
+		CommandActionExecutor -> CommandMessage : getContext
+		activate CommandMessage
+			CommandMessage --> CommandActionExecutor : Context
+		deactivate CommandMessage
+		CommandActionExecutor --> CompositeCommand : Context
+	deactivate CommandActionExecutor
+	CompositeCommand -> Context : failed
+	activate Context
+		Context --> CompositeCommand : Context
+	deactivate Context
+	CompositeCommand -> Context : getHistory
+	activate Context
+		Context --> CompositeCommand : Context$LifeCycleHistory
+	deactivate Context
+deactivate CompositeCommand
+
+@enduml
+
+----

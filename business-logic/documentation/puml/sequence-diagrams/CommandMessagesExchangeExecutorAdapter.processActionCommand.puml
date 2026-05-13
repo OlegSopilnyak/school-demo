@@ -1,0 +1,114 @@
+[plantuml,CommandMessagesExchangeExecutorAdapter.processActionCommand.puml.png,png]
+----
+@startuml
+
+participant CommandMessagesExchangeExecutorAdapter
+participant CommandActionExecutor
+participant CommandMessage
+participant Context
+participant MessagesProcessor
+participant ActionFacade
+participant MessagesExchange
+
+activate CommandMessagesExchangeExecutorAdapter
+	CommandMessagesExchangeExecutorAdapter -> CommandActionExecutor : validateInput
+	activate CommandActionExecutor
+		CommandActionExecutor -> CommandMessage : getDirection
+		activate CommandMessage
+			CommandMessage --> CommandActionExecutor : CommandMessage$Direction
+		deactivate CommandMessage
+		CommandActionExecutor --> CommandMessagesExchangeExecutorAdapter : void
+	deactivate CommandActionExecutor
+	CommandMessagesExchangeExecutorAdapter -> CommandMessage : getCorrelationId
+	activate CommandMessage
+		CommandMessage --> CommandMessagesExchangeExecutorAdapter : String
+	deactivate CommandMessage
+	CommandMessagesExchangeExecutorAdapter -> CommandMessage : getContext
+	activate CommandMessage
+		CommandMessage --> CommandMessagesExchangeExecutorAdapter : Context
+	deactivate CommandMessage
+	CommandMessagesExchangeExecutorAdapter -> Context : getCommand
+	activate Context
+		Context --> CommandMessagesExchangeExecutorAdapter : RootCommand
+	deactivate Context
+	CommandMessagesExchangeExecutorAdapter -> CommandMessagesExchangeExecutorAdapter : launchingCommandMessageProcessing
+	activate CommandMessagesExchangeExecutorAdapter
+		CommandMessagesExchangeExecutorAdapter -> MessagesProcessor : isProcessorActive
+		activate MessagesProcessor
+			MessagesProcessor --> CommandMessagesExchangeExecutorAdapter : boolean
+		deactivate MessagesProcessor
+		CommandMessagesExchangeExecutorAdapter -> MessagesProcessor : getProcessorName
+		activate MessagesProcessor
+			MessagesProcessor --> CommandMessagesExchangeExecutorAdapter : String
+		deactivate MessagesProcessor
+		CommandMessagesExchangeExecutorAdapter -> MessagesProcessor : getProcessorName
+		activate MessagesProcessor
+			MessagesProcessor --> CommandMessagesExchangeExecutorAdapter : String
+		deactivate MessagesProcessor
+		CommandMessagesExchangeExecutorAdapter -> CommandMessagesExchangeExecutorAdapter : processorNotActiveMessage
+		activate CommandMessagesExchangeExecutorAdapter
+			CommandMessagesExchangeExecutorAdapter --> CommandMessagesExchangeExecutorAdapter : String
+		deactivate CommandMessagesExchangeExecutorAdapter
+		CommandMessagesExchangeExecutorAdapter -> ActionFacade : throwFor
+		activate ActionFacade
+			ActionFacade --> CommandMessagesExchangeExecutorAdapter : Object
+		deactivate ActionFacade
+		CommandMessagesExchangeExecutorAdapter -> MessagesExchange : makeMessageInProgress
+		activate MessagesExchange
+			MessagesExchange --> CommandMessagesExchangeExecutorAdapter : boolean
+		deactivate MessagesExchange
+		CommandMessagesExchangeExecutorAdapter -> CommandMessagesExchangeExecutorAdapter : initiateProcessingMessage
+		activate CommandMessagesExchangeExecutorAdapter
+			CommandMessagesExchangeExecutorAdapter -> MessagesProcessor : accept
+			activate MessagesProcessor
+				MessagesProcessor --> CommandMessagesExchangeExecutorAdapter : boolean
+			deactivate MessagesProcessor
+			CommandMessagesExchangeExecutorAdapter -> CommandMessage : getCorrelationId
+			activate CommandMessage
+				CommandMessage --> CommandMessagesExchangeExecutorAdapter : String
+			deactivate CommandMessage
+			CommandMessagesExchangeExecutorAdapter -> CommandMessage : getCorrelationId
+			activate CommandMessage
+				CommandMessage --> CommandMessagesExchangeExecutorAdapter : String
+			deactivate CommandMessage
+			CommandMessagesExchangeExecutorAdapter -> MessagesExchange : stopWatchingMessage
+			activate MessagesExchange
+				MessagesExchange --> CommandMessagesExchangeExecutorAdapter : void
+			deactivate MessagesExchange
+			CommandMessagesExchangeExecutorAdapter --> CommandMessagesExchangeExecutorAdapter : boolean
+		deactivate CommandMessagesExchangeExecutorAdapter
+		CommandMessagesExchangeExecutorAdapter --> CommandMessagesExchangeExecutorAdapter : boolean
+	deactivate CommandMessagesExchangeExecutorAdapter
+	CommandMessagesExchangeExecutorAdapter -> CommandMessagesExchangeExecutorAdapter : waitingProcessedCommandMessage
+	activate CommandMessagesExchangeExecutorAdapter
+		CommandMessagesExchangeExecutorAdapter -> MessagesProcessor : isProcessorActive
+		activate MessagesProcessor
+			MessagesProcessor --> CommandMessagesExchangeExecutorAdapter : boolean
+		deactivate MessagesProcessor
+		CommandMessagesExchangeExecutorAdapter -> CommandMessagesExchangeExecutorAdapter : retrieveProcessedMessage
+		activate CommandMessagesExchangeExecutorAdapter
+			CommandMessagesExchangeExecutorAdapter -> MessagesExchange : messageWatchdogFor
+			activate MessagesExchange
+				MessagesExchange --> CommandMessagesExchangeExecutorAdapter : Optional
+			deactivate MessagesExchange
+			CommandMessagesExchangeExecutorAdapter --> CommandMessagesExchangeExecutorAdapter : CommandMessage
+		deactivate CommandMessagesExchangeExecutorAdapter
+		CommandMessagesExchangeExecutorAdapter -> MessagesProcessor : getProcessorName
+		activate MessagesProcessor
+			MessagesProcessor --> CommandMessagesExchangeExecutorAdapter : String
+		deactivate MessagesProcessor
+		CommandMessagesExchangeExecutorAdapter -> CommandMessagesExchangeExecutorAdapter : processorNotActiveMessage
+		activate CommandMessagesExchangeExecutorAdapter
+			CommandMessagesExchangeExecutorAdapter --> CommandMessagesExchangeExecutorAdapter : String
+		deactivate CommandMessagesExchangeExecutorAdapter
+		CommandMessagesExchangeExecutorAdapter -> ActionFacade : throwFor
+		activate ActionFacade
+			ActionFacade --> CommandMessagesExchangeExecutorAdapter : Object
+		deactivate ActionFacade
+		CommandMessagesExchangeExecutorAdapter --> CommandMessagesExchangeExecutorAdapter : CommandMessage
+	deactivate CommandMessagesExchangeExecutorAdapter
+deactivate CommandMessagesExchangeExecutorAdapter
+
+@enduml
+
+----

@@ -1,0 +1,87 @@
+[plantuml,MacroCommand.undoCommand.puml.png,png]
+----
+@startuml
+
+participant MacroCommand
+participant Context
+participant MacroCommandParameter
+participant NestedCommand
+
+activate MacroCommand
+	MacroCommand -> Context : getUndoParameter
+	activate Context
+		Context --> MacroCommand : Input
+	deactivate Context
+	MacroCommand -> MacroCommand : rollbackNested
+	activate MacroCommand
+		MacroCommand --> MacroCommand : Deque
+	deactivate MacroCommand
+	MacroCommand -> MacroCommand : afterRollbackProcessing
+	activate MacroCommand
+		MacroCommand -> MacroCommand : updateMacroCommandParameter
+		activate MacroCommand
+			MacroCommand -> Context : getRedoParameter
+			activate Context
+				Context --> MacroCommand : Input
+			deactivate Context
+			MacroCommand -> MacroCommandParameter : getNestedContexts
+			activate MacroCommandParameter
+				MacroCommandParameter --> MacroCommand : Deque
+			deactivate MacroCommandParameter
+			MacroCommand -> MacroCommandParameter : updateNestedContexts
+			activate MacroCommandParameter
+				MacroCommandParameter --> MacroCommand : void
+			deactivate MacroCommandParameter
+			MacroCommand --> MacroCommand : void
+		deactivate MacroCommand
+		MacroCommand -> Context : getCommand
+		activate Context
+			Context --> MacroCommand : RootCommand
+		deactivate Context
+		MacroCommand -> NestedCommand : getId
+		activate NestedCommand
+			NestedCommand --> MacroCommand : String
+		deactivate NestedCommand
+		MacroCommand -> Context : getException
+		activate Context
+			Context --> MacroCommand : Exception
+		deactivate Context
+		MacroCommand -> Context : getException
+		activate Context
+			Context --> MacroCommand : Exception
+		deactivate Context
+		MacroCommand -> Context : failed
+		activate Context
+			Context --> MacroCommand : Context
+		deactivate Context
+		MacroCommand -> MacroCommand : updateMacroCommandParameter
+		activate MacroCommand
+			MacroCommand -> Context : getRedoParameter
+			activate Context
+				Context --> MacroCommand : Input
+			deactivate Context
+			MacroCommand -> MacroCommandParameter : getNestedContexts
+			activate MacroCommandParameter
+				MacroCommandParameter --> MacroCommand : Deque
+			deactivate MacroCommandParameter
+			MacroCommand -> MacroCommandParameter : updateNestedContexts
+			activate MacroCommandParameter
+				MacroCommandParameter --> MacroCommand : void
+			deactivate MacroCommandParameter
+			MacroCommand --> MacroCommand : void
+		deactivate MacroCommand
+		MacroCommand --> MacroCommand : void
+	deactivate MacroCommand
+	MacroCommand -> NestedCommand : getId
+	activate NestedCommand
+		NestedCommand --> MacroCommand : String
+	deactivate NestedCommand
+	MacroCommand -> Context : failed
+	activate Context
+		Context --> MacroCommand : Context
+	deactivate Context
+deactivate MacroCommand
+
+@enduml
+
+----

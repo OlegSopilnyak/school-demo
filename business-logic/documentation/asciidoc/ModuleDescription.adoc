@@ -8,52 +8,142 @@ Doc Writer <oleg.sopilnyak@gmail.com>
 :imagesdir: ./images
 
 == Intro
-Business Logic Command's Oriented Module.
+The *Module* is implementing main *Business Logic* of the *Application*. The *_Ingress Module_* _stuff_ is communicating with it through *BusinessFacade* set. The implementation in module is executing particular *Action* in order to implement the *Application*'s feature. Each *Action* is executing in the *ActionContext*.
 
-Uses *Command* plus *Strategy* and *Factory* design patterns.
+.*IngressModule's* The Communication Through Stuff
+include::../puml/class-diagrams/ActionContextStuff.puml[]
+The Controller of *ingress module* launches *Action* through the particular *business facade* according to the feature's Domain.
+
+.Business Facades by *Domain Features*
+[%collapsible]
+====
+*Note!* +
+The *actionId* values are declared in the particular facade. +
+The *Action* is executing using *doActionAndResult(actionId , actionParameters)* using particular *Facade*.
+
+.Business Facades are Used for Interaction with Module
+include::../puml/class-diagrams/BusinessLogicFacades.puml[]
+====
 
 == Module parts
 
-=== The Module's Data Model
-
-.Basic Command Model
+=== The Data Model of The Module
+.Business Action through CommandMessage Architecture
 [%collapsible]
 ====
 
-.Core Commands Data Model
+.Business Action CommandMessage Architecture
+include::../puml/class-diagrams/CoreExecutableCommandMessageModel.puml[]
+'''
+Execution is going through *CommandActionExecutor* Service
+
+* _commitAction(actionContext , commandContext)_ for *DO* Action Type
+* _rollbackAction(actionContext , commandContext)_ for *UNDO* Action Type
+
+Both of them are executing through _processActionCommand(commandMessage)_ of the Service.
+
+.Business Action Execution Architecture
+include::../puml/class-diagrams/CoreExecutableCommandImplementationModel.puml[]
+
+Current implementation is built on the command messages queues.
+Here is used *MessageExchange* (implemented in *CommandMessagesExchangeExecutorAdapter*) service +
+and *MessagesProcessor* for these purposes.
+
+'''
+====
+
+.Business Action Operational
+[%collapsible]
+====
+
+.Operational Data Model
+include::../puml/class-diagrams/BusinessExecutableCommandMessageModel.puml[]
+
+'''
+====
+
+.Basic Command Architecture
+[%collapsible]
+====
+
+.Core Commands Architecture
 include::../puml/class-diagrams/CoreCommandModel.puml[]
 '''
 
-.Core Nested Commands Data Model (using in CompositeCommand see above)
+.Core Nested Commands Architecture (uses in *CompositeCommand*, please see above)
 include::../puml/class-diagrams/CoreNestedCommandModel.puml[]
 '''
 
-.Basic Commands Implementation Data Model
+.Basic Commands Implementation Architecture
 include::../puml/class-diagrams/CoreCommandImplementationModel.puml[]
 '''
 
-.Core Business Commands According Core Commands Data Model
+.The Commands According to the *Action Domain*
 include::../puml/class-diagrams/CommonCommandModel.puml[]
 ====
 
-.Executable Command Model
+'''
+=== The Business Logic Facades of The Module
+.Business Action Facades Model
+[%collapsible]
+====
+.Business Logic Facades Model
+include::../puml/class-diagrams/BusinessFacadesModel.puml[]
+
+.Business Action Aspect Model
+include::../puml/class-diagrams/BusinessFacadeAspectModel.puml[]
+====
+'''
+
+=== Business Basic Action Execution Logic of The Module
+.Business MessageAction Execution
+[%collapsible]
+====
+.Business Logic Do Action And Get Result Sequence
+include::../puml/sequence-diagrams/BusinessFacade.doActionAndResult.puml[]
+
+.CommandActionExecutor.processActionCommand Sequence
+include::../puml/sequence-diagrams/CommandActionExecutor.processActionCommand.puml[]
+
+.CommandThroughMessagesExecutor.processActionCommand Sequence
+include::../puml/sequence-diagrams/CommandMessagesExchangeExecutorAdapter.processActionCommand.puml[]
+====
+.Business ActionCommand Execution
+[%collapsible]
+====
+.Business Logic Execute MessageAction Sequence
+include::../puml/sequence-diagrams/ActionFacade.executeCommand.puml[]
+
+.Business Logic Execute MessageAction Sequence
+include::../puml/sequence-diagrams/CommandActionExecutor.processMessageAction.puml[]
+====
+
+.Simple Application Command Execution
 [%collapsible]
 ====
 
-.Command Action Execution Engine Data Model
-include::../puml/class-diagrams/CoreExecutableCommandImplementationModel.puml[]
-'''
+.Simple Command.createContext Sequence
+include::../puml/sequence-diagrams/RootCommand.createContext.puml[]
 
-.Basic Command Action Message Data Model
-include::../puml/class-diagrams/CoreExecutableCommandMessageModel.puml[]
-'''
+.Simple Command.doCommand Sequence
+include::../puml/sequence-diagrams/RootCommand.doCommand.puml[]
+
+.Simple Command.undoCommand Sequence
+include::../puml/sequence-diagrams/RootCommand.undoCommand.puml[]
 ====
 
-.Business Action Data Model
+.Composite Application Command Execution
 [%collapsible]
 ====
+
+.CompositeCommand.createContext for Nested Command Sequence
+include::../puml/sequence-diagrams/MacroCommand.createContext.puml[]
+
+.CompositeCommand.executeDoNested Sequence
+include::../puml/sequence-diagrams/MacroCommand.executeDoNested.puml[]
+
+.CompositeCommand.undoCommand Sequence
+include::../puml/sequence-diagrams/MacroCommand.undoCommand.puml[]
+====
 '''
 
-.Business Action Data Model
-include::../puml/class-diagrams/BusinessExecutableCommandMessageModel.puml[]
-====

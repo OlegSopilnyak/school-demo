@@ -1,0 +1,59 @@
+[plantuml,RootCommand.doCommand.puml.png,png]
+----
+@startuml
+
+participant RootCommand
+participant Context
+participant CommandExecutable
+participant NestedCommand
+
+activate RootCommand
+	RootCommand -> Context : isReady
+	activate Context
+		Context -> Context : stateIs
+		activate Context
+			Context --> Context : boolean
+		deactivate Context
+		Context --> RootCommand : boolean
+	deactivate Context
+	RootCommand -> RootCommand : self
+	activate RootCommand
+		RootCommand --> RootCommand : RootCommand
+	deactivate RootCommand
+	RootCommand -> CommandExecutable : executeDo
+	activate CommandExecutable
+		CommandExecutable --> RootCommand : void
+	deactivate CommandExecutable
+	RootCommand -> RootCommand : afterExecute
+	activate RootCommand
+		RootCommand -> NestedCommand : getId
+		activate NestedCommand
+			NestedCommand --> RootCommand : String
+		deactivate NestedCommand
+		RootCommand -> Context : isDone
+		activate Context
+			Context -> Context : stateIs
+			activate Context
+				Context --> Context : boolean
+			deactivate Context
+			Context --> RootCommand : boolean
+		deactivate Context
+		RootCommand -> Context : getResult
+		activate Context
+			Context --> RootCommand : Optional
+		deactivate Context
+		RootCommand -> Context : setResult
+		activate Context
+			Context --> RootCommand : void
+		deactivate Context
+		RootCommand --> RootCommand : void
+	deactivate RootCommand
+	RootCommand -> NestedCommand : getId
+	activate NestedCommand
+		NestedCommand --> RootCommand : String
+	deactivate NestedCommand
+deactivate RootCommand
+
+@enduml
+
+----
