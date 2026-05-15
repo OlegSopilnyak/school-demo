@@ -1,0 +1,34 @@
+[plantuml,MacroCommand.Model.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+abstract class MacroCommand {
+	{field} -actionExecutor : CommandActionExecutor
+	{field} -nestedCommandsList : List
+	{method} +executeDo ( context : Context ) : void
+	{method} +executeUndo ( context : Context ) : void
+	{method} +finalCommandResult ( nested : Deque ) : Object
+	{method} +fromNest () : Collection
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method} +toNest ( commands : NestedCommand[] ) : void
+}
+
+
+class MacroCommandParameter {
+	{field} {static} -MAIN_INPUT_FIELD_NAME : String
+	{field} {static} -NESTED_CONTEXTS_FIELD_NAME : String
+	{field} -nestedContexts : AtomicReference
+	{field} {static} -parameterDeserializer : ParameterDeserializer
+	{field} -rootInput : Input
+	{method} +updateNestedContexts ( nestedContexts : Deque ) : void
+	{method} +value () : MacroCommandParameter
+}
+
+
+
+
+
+
+@enduml
+----

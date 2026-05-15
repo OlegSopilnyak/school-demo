@@ -39,7 +39,7 @@ import lombok.experimental.SuperBuilder;
 @Entity
 @DiscriminatorValue("0")
 public class PrincipalProfileEntity extends PersonProfileEntity implements PrincipalProfile {
-    @Column(unique = true, columnDefinition = "varchar(50) default 'Not a Principal'")
+    @Column(unique = true, length = 50)
     private String username;
     @Column(columnDefinition = "varchar(150) default 'Not a Principal'")
     private String signature;

@@ -41,7 +41,7 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
     // commands executor for the commands from the nest
     private final transient CommandActionExecutor actionExecutor;
     // the list of nested commands
-    private final List<NestedCommand<?>> netsedCommandsList = new LinkedList<>();
+    private final List<NestedCommand<?>> nestedCommandsList = new LinkedList<>();
 
     /**
      * To get the collection of nested commands, used in the composite
@@ -50,8 +50,8 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     @Override
     public Collection<NestedCommand<?>> fromNest() {
-        synchronized (netsedCommandsList) {
-            return List.copyOf(netsedCommandsList);
+        synchronized (nestedCommandsList) {
+            return List.copyOf(nestedCommandsList);
         }
     }
 
@@ -63,8 +63,8 @@ public abstract class MacroCommand<T> implements CompositeCommand<T> {
      */
     @Override
     public void toNest(final NestedCommand<?>... commands) {
-        synchronized (netsedCommandsList) {
-            netsedCommandsList.addAll(Arrays.asList(commands));
+        synchronized (nestedCommandsList) {
+            nestedCommandsList.addAll(Arrays.asList(commands));
         }
     }
 

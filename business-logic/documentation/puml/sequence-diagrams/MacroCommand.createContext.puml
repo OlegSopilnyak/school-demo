@@ -14,22 +14,10 @@ activate CompositeCommand
 	deactivate CompositeCommand
 	CompositeCommand -> Optional : map
 	activate Optional
-		Optional -> Optional : isEmpty
-		activate Optional
-			Optional --> Optional : boolean
-		deactivate Optional
-		Optional -> Optional : empty
-		activate Optional
-			Optional --> Optional : Optional
-		deactivate Optional
 		Optional -> Function : apply
 		activate Function
 			Function --> Optional : Object
 		deactivate Function
-		Optional -> Optional : ofNullable
-		activate Optional
-			Optional --> Optional : Optional
-		deactivate Optional
 		Optional --> CompositeCommand : Optional
 	deactivate Optional
 	CompositeCommand -> Optional : orElseGet

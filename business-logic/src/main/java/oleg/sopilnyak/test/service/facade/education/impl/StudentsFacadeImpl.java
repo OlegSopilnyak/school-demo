@@ -21,18 +21,14 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service: To process command for school's student-facade
  */
 @Slf4j
-public class StudentsFacadeImpl extends EducationFacadeImpl implements StudentsFacade, ActionFacade {
-    private final CommandsFactory<StudentCommand<?>> factory;
-    @Getter
-    private final CommandActionExecutor actionExecutor;
-    // semantic data to payload converter
+public class StudentsFacadeImpl extends EducationFacadeImpl<StudentCommand<?>> implements StudentsFacade, ActionFacade {
+    // semantic external data to payload converter
     private final UnaryOperator<Student> toPayload;
 
     public StudentsFacadeImpl(
@@ -40,8 +36,7 @@ public class StudentsFacadeImpl extends EducationFacadeImpl implements StudentsF
             BusinessMessagePayloadMapper mapper,
             CommandActionExecutor actionExecutor
     ) {
-        this.factory = factory;
-        this.actionExecutor = actionExecutor;
+        super(factory, actionExecutor);
         this.toPayload = student -> student instanceof StudentPayload ? student : mapper.toPayload(student);
     }
 

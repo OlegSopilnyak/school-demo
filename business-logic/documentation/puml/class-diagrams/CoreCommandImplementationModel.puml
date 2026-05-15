@@ -28,7 +28,7 @@ interface CompositeCommand {
 
 abstract class MacroCommand {
 	{field} -actionExecutor : CommandActionExecutor
-	{field} -netsedCommandsList : List
+	{field} -nestedCommandsList : List
 	{method} #afterExecutionProcessing ( rootContext : Context , successful : Deque , failed : Deque , nestedResultsAfter : Deque ) : void
 	{method} #afterRollbackProcessing ( rootContext : Context , rollbackResult : Deque ) : void
 	{method} +executeDo ( context : Context ) : void

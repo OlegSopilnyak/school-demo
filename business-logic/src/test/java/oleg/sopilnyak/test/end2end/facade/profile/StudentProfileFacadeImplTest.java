@@ -114,6 +114,7 @@ class StudentProfileFacadeImplTest extends MysqlTestModelFactory {
         ReflectionTestUtils.setField(actionExecutor, "objectMapper", objectMapper);
         actionExecutor.initialize();
         ActionContext.setup("test-facade", "test-action");
+        deleteEntities(PrincipalProfileEntity.class);
     }
 
     @AfterEach

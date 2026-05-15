@@ -215,6 +215,7 @@ class CompositeCommandTest {
         doReturn(nestedContext).when(executor).commitAction(actionContext, nestedContext);
         doCallRealMethod().when(compositeCommand).executeDoNested(nestedContext);
         doCallRealMethod().when(compositeCommand).executeDoNested(eq(nestedContext), any());
+        doCallRealMethod().when(compositeCommand).executeDoNestedWithoutNotification(nestedContext);
 
         Context<?> result = compositeCommand.executeDoNested(nestedContext);
 
@@ -241,6 +242,7 @@ class CompositeCommandTest {
             return context;
         }).when(executor).commitAction(actionContext, nestedContext);
         doCallRealMethod().when(compositeCommand).executeDoNested(eq(nestedContext), any(Context.StateChangedListener.class));
+        doCallRealMethod().when(compositeCommand).executeDoNestedWithNotification(eq(nestedContext), any(Context.StateChangedListener.class));
 
         Context<?> result = compositeCommand.executeDoNested(nestedContext, listener);
 

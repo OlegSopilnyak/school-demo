@@ -5,15 +5,10 @@
 participant RootCommand
 participant Context
 participant CommandExecutable
-participant NestedCommand
 
 activate RootCommand
 	RootCommand -> Context : isDone
 	activate Context
-		Context -> Context : stateIs
-		activate Context
-			Context --> Context : boolean
-		deactivate Context
 		Context --> RootCommand : boolean
 	deactivate Context
 	RootCommand -> RootCommand : self
@@ -32,10 +27,6 @@ activate RootCommand
 		deactivate Context
 		RootCommand --> RootCommand : void
 	deactivate RootCommand
-	RootCommand -> NestedCommand : getId
-	activate NestedCommand
-		NestedCommand --> RootCommand : String
-	deactivate NestedCommand
 deactivate RootCommand
 
 @enduml

@@ -404,6 +404,25 @@
                             <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-macro-command-context-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.Model.puml</outputFilename>
+                            <whitelistRegexp>
+                                oleg.sopilnyak.test.service.command.*.*(MacroCommand|MacroCommandParameter)
+                            </whitelistRegexp>
+                            <methodBlacklistRegexp>equals|hashCode|toString|canEqual</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
                     <!--
                     UML Sequence Diagrams
                     -->
@@ -519,8 +538,8 @@
                             <outputFilename>RootCommand.doCommand.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.type.core.RootCommand</startClass>
                             <startMethod>doCommand</startMethod>
-                            <classBlacklistRegexp>.*(Logger)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|etState)</methodBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Logger|NestedCommand)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|stateIs)</methodBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
@@ -536,8 +555,8 @@
                             <outputFilename>RootCommand.undoCommand.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.type.core.RootCommand</startClass>
                             <startMethod>undoCommand</startMethod>
-                            <classBlacklistRegexp>.*(Logger)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|etState)</methodBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Logger|NestedCommand)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|stateIs)</methodBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
@@ -555,7 +574,23 @@
                             <startMethod>createContext</startMethod>
                             <ignoreStandardClasses>false</ignoreStandardClasses>
                             <classBlacklistRegexp>.*(Stream.*|Objects|Spliterators|Collectors|Collection)</classBlacklistRegexp>
-<!--                            <methodBlacklistRegexp>.*(getLog.*)</methodBlacklistRegexp>-->
+                            <methodBlacklistRegexp>.*(mpty|ofNullable)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-general-create-nested-context-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.createNestedContext.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
+                            <startMethod>buildCommandContextFor</startMethod>
+                            <ignoreStandardClasses>false</ignoreStandardClasses>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

@@ -1,33 +1,28 @@
 package oleg.sopilnyak.test.service.facade.education.base.impl;
 
-import oleg.sopilnyak.test.school.common.business.facade.BusinessFacade;
 import oleg.sopilnyak.test.school.common.business.facade.education.base.EducationFacade;
+import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
+import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.type.education.base.EducationCommand;
+import oleg.sopilnyak.test.service.facade.ActionFacade;
 
-public abstract class EducationFacadeImpl implements EducationFacade {
+import org.slf4j.Logger;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+@AllArgsConstructor
+public abstract class EducationFacadeImpl<T extends EducationCommand<?>> implements EducationFacade, ActionFacade {
+    protected final CommandsFactory<T> factory;
+    @Getter
+    private final CommandActionExecutor actionExecutor;
+
     /**
-     * Unified facade's entry-point to do action and return the result
-     * delegate to facade's main entry-point method
+     * To get the logger of the facade
      *
-     * @param actionId   the id of the action
-     * @param parameters the parameters of the action to execute
-     * @return action execution result value
-     * @see EducationFacade#educationAction(String, Object...)
+     * @return logger instance
      */
     @Override
-    public <T> T doActionAndResult(final String actionId, Object... parameters) {
-        return educationAction(actionId, parameters);
-    }
-
-    /**
-     * Facade depends on the action's execution (organization action)
-     *
-     * @param actionId   the id of the action
-     * @param parameters the parameters of the action to execute
-     * @return action execution result value
-     * @see BusinessFacade#doActionAndResult(String, Object...)
-     */
-    @Override
-    public <T> T educationAction(String actionId, Object... parameters) {
-        return EducationFacade.super.educationAction(actionId, parameters);
+    public Logger getLogger() {
+        throw new UnsupportedOperationException("Please override this method.");
     }
 }

@@ -13,7 +13,6 @@ import oleg.sopilnyak.test.school.common.model.education.Student;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
-import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 import oleg.sopilnyak.test.service.facade.education.base.impl.EducationFacadeImpl;
@@ -28,20 +27,16 @@ import java.util.function.Consumer;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
-import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 /**
  * Service: To process command for school's courses facade
  */
 @Slf4j
-public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFacade, ActionFacade {
+public class CoursesFacadeImpl extends EducationFacadeImpl<CourseCommand<?>> implements CoursesFacade, ActionFacade {
     public static final String STUDENT_ID_KEY = "student-id";
     public static final String COURSE_ID_KEY = "course-id";
-    private final CommandsFactory<? extends RootCommand<?>> factory;
-    @Getter
-    private final CommandActionExecutor actionExecutor;
-    // semantic data to payload converter
+    // semantic external data to payload converter
     private final UnaryOperator<Course> toPayload;
 
     public CoursesFacadeImpl(
@@ -49,8 +44,7 @@ public class CoursesFacadeImpl extends EducationFacadeImpl implements CoursesFac
             BusinessMessagePayloadMapper mapper,
             CommandActionExecutor actionExecutor
     ) {
-        this.factory = factory;
-        this.actionExecutor = actionExecutor;
+        super(factory, actionExecutor);
         this.toPayload = course -> course instanceof CoursePayload payload ? payload : mapper.toPayload(course);
     }
 

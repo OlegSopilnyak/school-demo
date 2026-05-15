@@ -441,23 +441,29 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="details">
 <span id="author" class="author">Doc Writer</span><br>
 <span id="email" class="email"><a href="mailto:oleg.sopilnyak@gmail.com">oleg.sopilnyak@gmail.com</a></span><br>
-<span id="revdate">== Intro</span>
 </div>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_module_parts">1. Module parts</a>
+<li><a href="#_intro">1. Intro</a></li>
+<li><a href="#_module_parts">2. Module parts</a>
 <ul class="sectlevel2">
-<li><a href="#_the_model">1.1. The Model</a></li>
-<li><a href="#_business_logic_action_execution">1.2. Business Logic Action Execution</a></li>
-<li><a href="#_command_execution_universe">1.3. Command Execution Universe</a></li>
+<li><a href="#_the_model">2.1. The Model</a></li>
+<li><a href="#_business_logic_action_execution">2.2. Business Logic Action Execution</a></li>
+<li><a href="#_command_execution_universe">2.3. Command Execution Universe</a>
+<ul class="sectlevel3">
+<li><a href="#_core_command_execution">2.3.1. Core Command Execution</a></li>
+<li><a href="#_advanced_command_execution">2.3.2. Advanced Command Execution</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 <div id="content">
-<div id="preamble">
+<div class="sect1">
+<h2 id="_intro">1. Intro</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;The <strong>Module</strong> is implementing main <strong>Business Logic</strong> of the <strong>Application</strong>. The <strong><em>Ingress Module</em></strong> <em>stuff</em> is communicating with it through <strong>BusinessFacades</strong> Set. The implementation in module is executing particular <strong>Action</strong> in order to implement the <strong>Application</strong>'s feature. Each <strong>Action</strong> is executing in the <strong>ActionContext</strong>.</p>
@@ -466,7 +472,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="content">
 <img src="./images/ActionContextStuff.puml.png.png" alt="ActionContextStuff.puml" width="855" height="242">
 </div>
-<div class="title">Figure 1. <strong>IngressModule&#8217;s</strong> The Communication Through Stuff</div>
+<div class="title">Figure 1. <strong>Ingress Module</strong>'s the Interaction through Stuff</div>
 </div>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;The Controller of <strong>ingress module</strong> launches <strong>Action</strong> through the particular <strong>Business Facade</strong> according to the feature&#8217;s <strong>Domain</strong>.</p>
@@ -487,7 +493,7 @@ The <strong>Action</strong> is executing using <code>doActionAndResult(actionId 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/BusinessFacadesModel.puml.png.png" alt="BusinessFacadesModel.puml" width="1811" height="499">
+<img src="./images/BusinessFacadesModel.puml.png.png" alt="BusinessFacadesModel.puml" width="1811" height="531">
 </div>
 <div class="title">Figure 3. Business Facades Set Implementation</div>
 </div>
@@ -496,10 +502,10 @@ The <strong>Action</strong> is executing using <code>doActionAndResult(actionId 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_module_parts">1. Module parts</h2>
+<h2 id="_module_parts">2. Module parts</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_the_model">1.1. The Model</h3>
+<h3 id="_the_model">2.1. The Model</h3>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;The Business Logic <strong>Action</strong> execution is going through <strong>CommandActionExecutor</strong> Service</p>
 </div>
@@ -599,7 +605,7 @@ and <strong>MessagesProcessor</strong> for these purposes.</p>
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_business_logic_action_execution">1.2. Business Logic Action Execution</h3>
+<h3 id="_business_logic_action_execution">2.2. Business Logic Action Execution</h3>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;To execute BusinessLogic Action is used <strong>CommandActionExecutor</strong> which uses application&#8217;s <strong>Command</strong> which ID is the same as target action&#8217;s ID, using <strong>CommandMessage</strong> as an action execution context carrier.<br>
 Business Action Request is passing through <strong>ActionFacade</strong>, getting command-context and command-instance from the <strong>CommandsFactory</strong>, preparing <strong>CommandMessage</strong> and passing it to the <strong>CommandActionExecutor</strong></p>
@@ -647,9 +653,11 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <hr>
 </div>
 <div class="sect2">
-<h3 id="_command_execution_universe">1.3. Command Execution Universe</h3>
+<h3 id="_command_execution_universe">2.3. Command Execution Universe</h3>
+<div class="sect3">
+<h4 id="_core_command_execution">2.3.1. Core Command Execution</h4>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;As you understood, there is no <strong>Action</strong> entity here, <strong>Command</strong> entity is used instead. The <strong>Command</strong> entity here is no exact implementation of the <code>Command Design Pattern</code> because for each action&#8217;s request new instance of the <strong>Command</strong> didn&#8217;t create. <mark>Instead</mark>, each action creates <code>command context</code> in order to use it with particular command instance.<br></p>
+<p>&#160;&#160;&#160;&#160;As you understood, there is no <strong>Action</strong> entity here, <strong>Command</strong> entity is used instead. The <strong>Command</strong> entity here is no an exact implementation of the <code>Command Design Pattern</code> because for each business logic action&#8217;s request new instance of the <strong>Command</strong> didn&#8217;t create. <mark>Instead</mark>, each action execution creates <code>command context</code> in order to use it with particular command instance.<br></p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -660,7 +668,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p><code>command -</code> the reference to <strong>Command</strong> where the <strong>Context</strong> is executed</p>
+<p><code>command -</code> reference to the instance of <strong>Command</strong> where the <strong>Context</strong> will be executed</p>
 </li>
 <li>
 <p><code>redoParameter -</code> input parameter value for the <strong>Command</strong> execution</p>
@@ -669,19 +677,19 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <p><code>undoParameter -</code> input parameter value for the <strong>Command</strong> execution rollback</p>
 </li>
 <li>
-<p><code>result -</code> output parameter value for the <strong>Command</strong> execution</p>
+<p><code>result -</code> the <strong>result value</strong> of the <strong>Command</strong> execution</p>
 </li>
 <li>
-<p><code>state -</code> current <strong>State</strong> of the <strong>Command</strong> execution</p>
+<p><code>state -</code> the current <strong>state</strong> of the <strong>Command</strong> execution</p>
 </li>
 <li>
-<p><code>exception -</code> the cause of failed <strong>Command</strong> execution</p>
+<p><code>exception -</code> the <strong>cause</strong> of failed <strong>Command</strong> execution</p>
 </li>
 <li>
-<p><code>startedAt -</code> when is started the <strong>Command</strong> execution</p>
+<p><code>startedAt -</code> <strong>when</strong> was started the <strong>Command</strong> execution</p>
 </li>
 <li>
-<p><code>duration -</code> how long lasted the <strong>Command</strong> execution</p>
+<p><code>duration -</code> <strong>how long</strong> was lasted the <strong>Command</strong> execution</p>
 </li>
 </ol>
 </div>
@@ -701,11 +709,11 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="title">Figure 18. CommandFactory.makeCommandContext Sequence</div>
 </div>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;2.Then it passes created context to the Command instance for action&#8217;s execution</p>
+<p>&#160;&#160;&#160;&#160;2.Then it passes made context to the <strong>Command</strong> instance for execution</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/RootCommand.doCommand.puml.png.png" alt="RootCommand.doCommand.puml" width="517" height="864">
+<img src="./images/RootCommand.doCommand.puml.png.png" alt="RootCommand.doCommand.puml" width="384" height="570">
 </div>
 <div class="title">Figure 19. Command.doCommand Sequence</div>
 </div>
@@ -714,39 +722,50 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/RootCommand.undoCommand.puml.png.png" alt="RootCommand.undoCommand.puml" width="517" height="596">
+<img src="./images/RootCommand.undoCommand.puml.png.png" alt="RootCommand.undoCommand.puml" width="384" height="448">
 </div>
 <div class="title">Figure 20. Command.undoCommand Sequence</div>
 </div>
 </div>
 </details>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;Concrete implementation of command, usually already connected to the external world using injected external access facades (<strong>Persistence Facade</strong> for example) which allows it to change or retrieve data of the Database or any other Data Sources.</p>
+<p>&#160;&#160;&#160;&#160;Concrete implementation of the <strong>Command</strong>, usually is connected to the external world using injected external access facades (<strong>Persistence Facade</strong> for example) which allows Command&#8217;s execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC).</p>
 </div>
-<hr>
+</div>
+<div class="sect3">
+<h4 id="_advanced_command_execution">2.3.2. Advanced Command Execution</h4>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;The <strong>Composite Command</strong> entity is still the <strong>Command</strong> but has some different behavior in compare. The <strong>Composite Command</strong> usually doesn&#8217;t interact with external world, delegating it to the <strong>Nested Commands</strong></p>
+<p>&#160;&#160;&#160;&#160;The <strong>Composite Command</strong> entity is still the <strong>Command</strong> but has some different behavior in compare. The <strong>Composite Command</strong> usually doesn&#8217;t interact with external world, delegating it to the <code>nested</code> <strong>Commands</strong>. There is no big difference between <strong>RootCommand</strong> and <strong>CompositeCommand</strong> context making. Only input parameter of the command execution <code>redoParameter -</code> uses special parameter type (<strong>MacroCommandParameter</strong>).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.Model.puml.png.png" alt="MacroCommand.Model.puml" width="731" height="206">
+</div>
+<div class="title">Figure 21. MacroCommand Architecture</div>
+</div>
+<div class="paragraph">
+<p>Contains the nested command-contexts ordered the same way as it is in CompositeCommand&#8217;s nested commands list.</p>
 </div>
 <details>
 <summary class="title">Composite Command Execution</summary>
 <div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.createContext.puml.png.png" alt="MacroCommand.createContext.puml" width="400" height="682">
+<img src="./images/MacroCommand.createContext.puml.png.png" alt="MacroCommand.createContext.puml" width="384" height="422">
 </div>
-<div class="title">Figure 21. CompositeCommand.createContext Sequence</div>
+<div class="title">Figure 22. CompositeCommand.createContext Sequence</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/MacroCommand.executeDoNested.puml.png.png" alt="MacroCommand.executeDoNested.puml" width="679" height="1081">
 </div>
-<div class="title">Figure 22. CompositeCommand.executeDoNested Sequence</div>
+<div class="title">Figure 23. CompositeCommand.executeDoNested Sequence</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="./images/MacroCommand.undoCommand.puml.png.png" alt="MacroCommand.undoCommand.puml" width="666" height="1289">
 </div>
-<div class="title">Figure 23. CompositeCommand.undoCommand Sequence</div>
+<div class="title">Figure 24. CompositeCommand.undoCommand Sequence</div>
 </div>
 </div>
 </details>
@@ -755,9 +774,10 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 </div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-15 11:25:36 +0300
+Last updated 2026-05-15 19:30:14 +0300
 </div>
 </div>
 </body>

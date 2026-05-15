@@ -30,8 +30,6 @@ class AuthorityPersonFacadeImpl {
 class CoursesFacadeImpl {
 	{field} {static} +COURSE_ID_KEY : String
 	{field} {static} +STUDENT_ID_KEY : String
-	{field} -actionExecutor : CommandActionExecutor
-	{field} -factory : CommandsFactory
 	{field} {static} -log : Logger
 	{field} -toPayload : UnaryOperator
 	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
@@ -39,8 +37,8 @@ class CoursesFacadeImpl {
 
 
 abstract class EducationFacadeImpl {
-	{method} +doActionAndResult ( actionId : String , parameters : Object[] ) : Object
-	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
+	{field} -actionExecutor : CommandActionExecutor
+	{field} #factory : CommandsFactory
 }
 
 
@@ -84,8 +82,6 @@ class StudentProfileFacadeImpl {
 
 
 class StudentsFacadeImpl {
-	{field} -actionExecutor : CommandActionExecutor
-	{field} -factory : CommandsFactory
 	{field} {static} -log : Logger
 	{field} -toPayload : UnaryOperator
 	{method} +educationAction ( actionId : String , parameters : Object[] ) : Object
@@ -104,6 +100,7 @@ class StudentsGroupFacadeImpl {
 AuthorityPersonFacadeImpl --|>  OrganizationFacadeImpl
 CoursesFacadeImpl --|>  EducationFacadeImpl
 CoursesFacadeImpl ..|>  ActionFacade
+EducationFacadeImpl ..|>  ActionFacade
 FacultyFacadeImpl --|>  OrganizationFacadeImpl
 OrganizationFacadeImpl ..|>  ActionFacade
 PersonProfileFacadeImpl ..|>  ActionFacade

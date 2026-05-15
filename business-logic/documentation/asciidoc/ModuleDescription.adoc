@@ -7,10 +7,11 @@ Doc Writer <oleg.sopilnyak@gmail.com>
 :source-highlighter: rouge
 :imagesdir: ./images
 :tab: {nbsp}{nbsp}{nbsp}{nbsp}
+
 == Intro
 {tab}The *Module* is implementing main *Business Logic* of the *Application*. The *_Ingress Module_* _stuff_ is communicating with it through *BusinessFacades* Set. The implementation in module is executing particular *Action* in order to implement the *Application*'s feature. Each *Action* is executing in the *ActionContext*.
 
-.*IngressModule's* The Communication Through Stuff
+.**Ingress Module**'s the Interaction through Stuff
 include::../puml/class-diagrams/ActionContextStuff.puml[]
 {tab}The Controller of *ingress module* launches *Action* through the particular *Business Facade* according to the feature's *Domain*.
 
@@ -121,18 +122,19 @@ include::../puml/sequence-diagrams/CommandActionExecutor.processMessageAction.pu
 '''
 
 === Command Execution Universe
-{tab}As you understood, there is no *Action* entity here, *Command* entity is used instead. The *Command* entity here is no exact implementation of the `Command Design Pattern` because for each action's request new instance of the *Command* didn't create. #Instead#, each action creates `command context` in order to use it with particular command instance. +
+==== Core Command Execution
+{tab}As you understood, there is no *Action* entity here, *Command* entity is used instead. The *Command* entity here is no an exact implementation of the `Command Design Pattern` because for each business logic action's request new instance of the *Command* didn't create. #Instead#, each action execution creates `command context` in order to use it with particular command instance. +
 
 .CommandContext Architecture
 include::../puml/class-diagrams/CommandContext.Model.puml[]
-. `command -` reference to the *Command* where the *Context* is executed
+. `command -` reference to the instance of *Command* where the *Context* will be executed
 . `redoParameter -` input parameter value for the *Command* execution
 . `undoParameter -` input parameter value for the *Command* execution rollback
-. `result -` the result value of the *Command* execution
-. `state -` current *state* of the *Command* execution
+. `result -` the *result value* of the *Command* execution
+. `state -` the current *state* of the *Command* execution
 . `exception -` the *cause* of failed *Command* execution
-. `startedAt -` *when* is started the *Command* execution
-. `duration -` *how long* lasted the *Command* execution
+. `startedAt -` *when* was started the *Command* execution
+. `duration -` *how long* was lasted the *Command* execution
 
 In that case *Command* entity behavior closer to `Strategy Design Pattern`.
 
@@ -144,7 +146,7 @@ In that case *Command* entity behavior closer to `Strategy Design Pattern`.
 .CommandFactory.makeCommandContext Sequence
 include::../puml/sequence-diagrams/RootCommand.createContext.puml[]
 
-{tab}2.Then it passes created context to the Command instance for action's execution
+{tab}2.Then it passes made context to the *Command* instance for execution
 
 .Command.doCommand Sequence
 include::../puml/sequence-diagrams/RootCommand.doCommand.puml[]
@@ -154,23 +156,42 @@ include::../puml/sequence-diagrams/RootCommand.doCommand.puml[]
 .Command.undoCommand Sequence
 include::../puml/sequence-diagrams/RootCommand.undoCommand.puml[]
 ====
-{tab}Concrete implementation of command, usually already connected to the external world using injected external access facades (*Persistence Facade* for example) which allows it to change or retrieve data of the Database or any other Data Sources.
+{tab}Concrete implementation of the *Command*, usually is connected to the external world using injected external access facades (*Persistence Facade* for example) which allows Command's execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC).
 
+==== Advanced Command Execution
+{tab}The *Composite Command* entity is still the *Command* but has some different behavior in compare. The *Composite Command* usually doesn't interact with external world, delegating it to the `nested` *Commands*. There is no big difference between *RootCommand* and *CompositeCommand* context making. Only input parameter of the command execution `redoParameter -` uses special parameter type (*MacroCommandParameter*).
+
+.MacroCommand Architecture
+include::../puml/class-diagrams/MacroCommand.Model.puml[]
+
+Contains the nested command-contexts ordered the same way as it is in CompositeCommand's nested commands list.
+
+.Composite Command Making Context
+[%collapsible]
+====
+.CompositeCommand.createContext Sequence
+include::../puml/sequence-diagrams/MacroCommand.createContext.puml[]
+
+.CompositeCommand.createContext Sequence
+include::../puml/sequence-diagrams/MacroCommand.createNestedContext.puml[]
 '''
-{tab}The *Composite Command* entity is still the *Command* but has some different behavior in compare. The *Composite Command* usually doesn't interact with external world, delegating it to the *Nested Commands*
+====
 
 .Composite Command Execution
 [%collapsible]
 ====
-
-.CompositeCommand.createContext Sequence
-include::../puml/sequence-diagrams/MacroCommand.createContext.puml[]
 
 .CompositeCommand.executeDoNested Sequence
 include::../puml/sequence-diagrams/MacroCommand.executeDoNested.puml[]
 
 .CompositeCommand.undoCommand Sequence
 include::../puml/sequence-diagrams/MacroCommand.undoCommand.puml[]
+'''
 ====
 '''
+=== Commands Factories
+{tab}The commands factories in commands universe play two roles:
+
+* joining commands by commands family
+* creating command-context before action's execution.
 
