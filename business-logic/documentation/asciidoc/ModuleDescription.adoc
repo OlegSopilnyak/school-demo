@@ -6,41 +6,40 @@ Doc Writer <oleg.sopilnyak@gmail.com>
 :sectnums:
 :source-highlighter: rouge
 :imagesdir: ./images
-
+:tab: {nbsp}{nbsp}{nbsp}{nbsp}
 == Intro
-The *Module* is implementing main *Business Logic* of the *Application*. The *_Ingress Module_* _stuff_ is communicating with it through *BusinessFacade* set. The implementation in module is executing particular *Action* in order to implement the *Application*'s feature. Each *Action* is executing in the *ActionContext*.
+{tab}The *Module* is implementing main *Business Logic* of the *Application*. The *_Ingress Module_* _stuff_ is communicating with it through *BusinessFacades* Set. The implementation in module is executing particular *Action* in order to implement the *Application*'s feature. Each *Action* is executing in the *ActionContext*.
 
 .*IngressModule's* The Communication Through Stuff
 include::../puml/class-diagrams/ActionContextStuff.puml[]
-The Controller of *ingress module* launches *Action* through the particular *business facade* according to the feature's Domain.
+{tab}The Controller of *ingress module* launches *Action* through the particular *Business Facade* according to the feature's *Domain*.
 
-.Business Facades by *Domain Features*
+.Business Facades by Application's *Domains*
 [%collapsible]
 ====
-*Note!* +
-The *actionId* values are declared in the particular facade. +
-The *Action* is executing using *doActionAndResult(actionId , actionParameters)* using particular *Facade*.
+{tab}{tab}{tab} *Note!* +
+{tab}Concrete *actionId* values are declared in the particular facade. +
+The *Action* is executing using `doActionAndResult(actionId , actionParameters)` using particular *BusinessFacade* implementation.
 
-.Business Facades are Used for Interaction with Module
+.Business Facades Set Declaration from *micro-core* Module
 include::../puml/class-diagrams/BusinessLogicFacades.puml[]
+
+.Business Facades Set Implementation
+include::../puml/class-diagrams/BusinessFacadesModel.puml[]
 ====
 
 == Module parts
 
-=== The Data Model of The Module
-.Business Action through CommandMessage Architecture
+=== The Model
+{tab}The Business Logic *Action* execution is going through *CommandActionExecutor* Service
+
+.BusinessFacade *Action* through *CommandMessage* Architecture
 [%collapsible]
 ====
+* `commitAction(actionContext , commandContext)` for *DO* Action Type
+* `rollbackAction(actionContext , commandContext)` for *UNDO* Action Type
 
-.Business Action CommandMessage Architecture
-include::../puml/class-diagrams/CoreExecutableCommandMessageModel.puml[]
-'''
-Execution is going through *CommandActionExecutor* Service
-
-* _commitAction(actionContext , commandContext)_ for *DO* Action Type
-* _rollbackAction(actionContext , commandContext)_ for *UNDO* Action Type
-
-Both of them are executing through _processActionCommand(commandMessage)_ of the Service.
+Both of them are executing through `processActionCommand(commandMessage)` of the Service.
 
 .Business Action Execution Architecture
 include::../puml/class-diagrams/CoreExecutableCommandImplementationModel.puml[]
@@ -50,11 +49,21 @@ Here is used *MessageExchange* (implemented in *CommandMessagesExchangeExecutorA
 and *MessagesProcessor* for these purposes.
 
 '''
+Business Action Command Message Architecture
+
+.*CommandMessage* of the Action
+include::../puml/class-diagrams/CoreExecutableCommandMessageModel.puml[]
+'''
 ====
 
-.Business Action Operational
+{tab}Each operational data type from outside the Module is passing through *Model Data Mapper* adopting it to the operational data model of the Module.
+
+.Business Action Operational Data Model
 [%collapsible]
 ====
+
+.Outside Data Model Mapper
+include::../puml/class-diagrams/BusinessExecutableMessageMapperModel.puml[]
 
 .Operational Data Model
 include::../puml/class-diagrams/BusinessExecutableCommandMessageModel.puml[]
@@ -74,29 +83,20 @@ include::../puml/class-diagrams/CoreCommandModel.puml[]
 include::../puml/class-diagrams/CoreNestedCommandModel.puml[]
 '''
 
-.Basic Commands Implementation Architecture
+.Advanced Commands Implementation Architecture
 include::../puml/class-diagrams/CoreCommandImplementationModel.puml[]
 '''
 
 .The Commands According to the *Action Domain*
 include::../puml/class-diagrams/CommonCommandModel.puml[]
 ====
-
-'''
-=== The Business Logic Facades of The Module
-.Business Action Facades Model
-[%collapsible]
-====
-.Business Logic Facades Model
-include::../puml/class-diagrams/BusinessFacadesModel.puml[]
-
-.Business Action Aspect Model
-include::../puml/class-diagrams/BusinessFacadeAspectModel.puml[]
-====
 '''
 
-=== Business Basic Action Execution Logic of The Module
-.Business MessageAction Execution
+=== Business Logic Action Execution
+{tab}To execute BusinessLogic Action is used *CommandActionExecutor* which uses application's *Command* which ID is the same as target action's ID, using *CommandMessage* as an action execution context carrier. +
+Business Action Request is passing through *ActionFacade*, getting command-context and command-instance from the *CommandsFactory*, preparing *CommandMessage* and passing it to the *CommandActionExecutor*
+
+.Action Message Execution
 [%collapsible]
 ====
 .Business Logic Do Action And Get Result Sequence
@@ -108,7 +108,8 @@ include::../puml/sequence-diagrams/CommandActionExecutor.processActionCommand.pu
 .CommandThroughMessagesExecutor.processActionCommand Sequence
 include::../puml/sequence-diagrams/CommandMessagesExchangeExecutorAdapter.processActionCommand.puml[]
 ====
-.Business ActionCommand Execution
+
+.Action Command Execution
 [%collapsible]
 ====
 .Business Logic Execute MessageAction Sequence
@@ -117,26 +118,52 @@ include::../puml/sequence-diagrams/ActionFacade.executeCommand.puml[]
 .Business Logic Execute MessageAction Sequence
 include::../puml/sequence-diagrams/CommandActionExecutor.processMessageAction.puml[]
 ====
+'''
 
-.Simple Application Command Execution
+=== Command Execution Universe
+{tab}As you understood, there is no *Action* entity here, *Command* entity is used instead. The *Command* entity here is no exact implementation of the `Command Design Pattern` because for each action's request new instance of the *Command* didn't create. #Instead#, each action creates `command context` in order to use it with particular command instance. +
+
+.CommandContext Architecture
+include::../puml/class-diagrams/CommandContext.Model.puml[]
+. `command -` reference to the *Command* where the *Context* is executed
+. `redoParameter -` input parameter value for the *Command* execution
+. `undoParameter -` input parameter value for the *Command* execution rollback
+. `result -` the result value of the *Command* execution
+. `state -` current *state* of the *Command* execution
+. `exception -` the *cause* of failed *Command* execution
+. `startedAt -` *when* is started the *Command* execution
+. `duration -` *how long* lasted the *Command* execution
+
+In that case *Command* entity behavior closer to `Strategy Design Pattern`.
+
+.Command Execution Behavior
 [%collapsible]
 ====
+{tab}1.First of all *ActionExecutor* creates the Command Context
 
-.Simple Command.createContext Sequence
+.CommandFactory.makeCommandContext Sequence
 include::../puml/sequence-diagrams/RootCommand.createContext.puml[]
 
-.Simple Command.doCommand Sequence
+{tab}2.Then it passes created context to the Command instance for action's execution
+
+.Command.doCommand Sequence
 include::../puml/sequence-diagrams/RootCommand.doCommand.puml[]
 
-.Simple Command.undoCommand Sequence
+{tab}3.Or for action execution's rollback (uses in CompositeCommand)
+
+.Command.undoCommand Sequence
 include::../puml/sequence-diagrams/RootCommand.undoCommand.puml[]
 ====
+{tab}Concrete implementation of command, usually already connected to the external world using injected external access facades (*Persistence Facade* for example) which allows it to change or retrieve data of the Database or any other Data Sources.
 
-.Composite Application Command Execution
+'''
+{tab}The *Composite Command* entity is still the *Command* but has some different behavior in compare. The *Composite Command* usually doesn't interact with external world, delegating it to the *Nested Commands*
+
+.Composite Command Execution
 [%collapsible]
 ====
 
-.CompositeCommand.createContext for Nested Command Sequence
+.CompositeCommand.createContext Sequence
 include::../puml/sequence-diagrams/MacroCommand.createContext.puml[]
 
 .CompositeCommand.executeDoNested Sequence

@@ -300,6 +300,21 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>generate-business-command-message-mapper-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>BusinessExecutableMessageMapperModel.puml</outputFilename>
+                            <whitelistRegexp>oleg.sopilnyak.test.service.mapper.BusinessMessagePayloadMapper</whitelistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>generate-business-command-message-class-diagram</id>
                         <goals>
                             <goal>generate</goal>
@@ -366,6 +381,29 @@
                             <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-command-context-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>CommandContext.Model.puml</outputFilename>
+                            <whitelistRegexp>
+                                oleg.sopilnyak.test.service.command.*.*(CommandContext|State|StateChangedListener|History|NestedContextDeque)
+                            </whitelistRegexp>
+                            <methodBlacklistRegexp>builder|equals|hashCode|toString|canEqual</methodBlacklistRegexp>
+                            <fieldBlacklistRegexp>log|nested.*</fieldBlacklistRegexp>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PROTECTED</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
                     <!--
                     UML Sequence Diagrams
                     -->
@@ -414,7 +452,6 @@
                             <outputFilename>CommandMessagesExchangeExecutorAdapter.processActionCommand.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.executable.core.executor.messaging.CommandMessagesExchangeExecutorAdapter</startClass>
                             <startMethod>processActionCommand</startMethod>
-<!--                            <classBlacklistRegexp>.*(Builder|Logger|RootCommand|NestedCommand)</classBlacklistRegexp>-->
                             <classBlacklistRegexp>.*(Logger|RootCommand|NestedCommand)</classBlacklistRegexp>
                             <methodBlacklistRegexp>.*(getLogger)</methodBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
@@ -464,8 +501,8 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>RootCommand.createContext.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.service.command.type.core.RootCommand</startClass>
-                            <startMethod>createContext</startMethod>
+                            <startClass>oleg.sopilnyak.test.service.command.factory.base.CommandsFactory</startClass>
+                            <startMethod>makeCommandContext</startMethod>
                             <classBlacklistRegexp>.*(Builder)</classBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -506,7 +543,7 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-business-composite-command-create-context-diagram</id>
+                        <id>generate-business-composite-command-general-create-context-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
                         </goals>
@@ -515,9 +552,10 @@
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>MacroCommand.createContext.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
-                            <startMethod>buildCommandContextFor</startMethod>
-                            <classBlacklistRegexp>.*(Logger)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*)</methodBlacklistRegexp>
+                            <startMethod>createContext</startMethod>
+                            <ignoreStandardClasses>false</ignoreStandardClasses>
+                            <classBlacklistRegexp>.*(Stream.*|Objects|Spliterators|Collectors|Collection)</classBlacklistRegexp>
+<!--                            <methodBlacklistRegexp>.*(getLog.*)</methodBlacklistRegexp>-->
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

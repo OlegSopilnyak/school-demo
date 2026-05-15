@@ -1,0 +1,35 @@
+[plantuml,BusinessExecutableMessageMapperModel.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface BusinessMessagePayloadMapper {
+	{method} -copyExtraKeys ( profile : PersonProfile ) : Extra[]
+	{method} -emptyExtraKeys () : Extra[]
+	{method} +toCoursesPayload ( courses : List ) : List
+	{method} +toFacultyPayload ( faculties : List ) : List
+	{method}  {abstract} +toPayload ( credentials : AccessCredentials ) : AccessCredentialsPayload
+	{method}  {abstract} +toPayload ( person : AuthorityPerson ) : AuthorityPersonPayload
+	{method} +toPayload ( baseType : BaseType ) : BaseType
+	{method}  {abstract} +toPayload ( course : Course ) : CoursePayload
+	{method}  {abstract} +toPayload ( faculty : Faculty ) : FacultyPayload
+	{method} +toPayload ( personProfile : PersonProfile ) : PersonProfile
+	{method}  {abstract} +toPayload ( profile : PrincipalProfile ) : PrincipalProfilePayload
+	{method}  {abstract} +toPayload ( student : Student ) : StudentPayload
+	{method}  {abstract} +toPayload ( profile : StudentProfile ) : StudentProfilePayload
+	{method}  {abstract} +toPayload ( group : StudentsGroup ) : StudentsGroupPayload
+	{method}  {abstract} +toPayloadShort ( course : Course ) : CoursePayload
+	{method}  {abstract} +toPayloadShort ( faculty : Faculty ) : FacultyPayload
+	{method}  {abstract} +toPayloadShort ( student : Student ) : StudentPayload
+	{method} +toProfileExtras ( profile : PersonProfile ) : Extra[]
+	{method} +toSignature ( profile : PersonProfile ) : String
+	{method} +toStudentsPayload ( students : List ) : List
+}
+
+
+
+
+
+
+@enduml
+----

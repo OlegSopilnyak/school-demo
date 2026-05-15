@@ -1,0 +1,95 @@
+[plantuml,CommandContext.Model.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+class CommandContext {
+	{field} +command : RootCommand
+	{field} +duration : Duration
+	{field} +exception : Exception
+	{field} +redoParameter : Input
+	{field} +resultData : Object
+	{field} +startedAt : Instant
+	{field} +undoParameter : Input
+	{method} +addStateListener ( listener : StateChangedListener ) : void
+	{method} +failed ( exception : Exception ) : Context
+	{method} +getResult () : Optional
+	{method} +removeStateListener ( listener : StateChangedListener ) : void
+	{method} +setResult ( result : Object ) : void
+}
+
+
+class History {
+	{field} {static} +DURATIONS_FILED_NAME : String
+	{field} {static} +STARTED_FILED_NAME : String
+	{field} {static} +STATES_FILED_NAME : String
+	{field} -started : List
+	{field} -states : List
+	{field} -worked : List
+	{method} +add ( state : State ) : void
+	{method} +add ( duration : Duration , finishedBy : State ) : void
+	{method} +add ( startedAt : Instant , startedAfter : State ) : void
+	{method} +durations () : Deque
+	{method} +started () : Deque
+	{method} +states () : Deque
+}
+
+
+interface LifeCycleHistory {
+	{method}  {abstract} +durations () : Deque
+	{method}  {abstract} +started () : Deque
+	{method}  {abstract} +states () : Deque
+}
+
+
+class NestedContextDeque {
+	{field} -deque : Deque
+	{field} -locker : Lock
+	{method} +putToTail ( item : Object ) : void
+}
+
+
+class NestedStateChangedListener {
+	{method} +stateChanged ( context : Context , previous : State , current : State ) : void
+}
+
+
+enum State {
+	{field} +COMPLETED
+	{field} +EXPIRED
+	{field} +IN_PROGRESS
+}
+
+
+enum State {
+	{field} +CANCEL
+	{field} +DONE
+	{field} +FAIL
+	{field} +INIT
+	{field} +READY
+	{field} +UNDONE
+	{field} +WORK
+}
+
+
+interface StateChangedListener {
+	{method}  {abstract} +stateChanged ( context : Context , previous : State , current : State ) : void
+}
+
+
+
+
+CommandContext "1" o-- "0..*"  StateChangedListener : listeners
+CommandContext *--  History : history
+CommandContext -->  State : state
+History ..|>  LifeCycleHistory
+NestedStateChangedListener *--  NestedContextDeque : failedContexts
+NestedStateChangedListener *--  NestedContextDeque : succeedContexts
+NestedStateChangedListener ..|>  StateChangedListener
+
+
+@enduml
+----

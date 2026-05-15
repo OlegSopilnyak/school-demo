@@ -3,21 +3,43 @@
 @startuml
 
 participant CompositeCommand
-participant NestedCommand
+participant Optional
+participant Function
+participant Supplier
 
 activate CompositeCommand
-	CompositeCommand -> NestedCommand : acceptPreparedContext
-	activate NestedCommand
-		NestedCommand --> CompositeCommand : Context
-	deactivate NestedCommand
-	CompositeCommand -> NestedCommand : getId
-	activate NestedCommand
-		NestedCommand --> CompositeCommand : String
-	deactivate NestedCommand
-	CompositeCommand -> NestedCommand : createFailedContext
-	activate NestedCommand
-		NestedCommand --> CompositeCommand : Context
-	deactivate NestedCommand
+	CompositeCommand -> CompositeCommand : fromNest
+	activate CompositeCommand
+		CompositeCommand --> CompositeCommand : Collection
+	deactivate CompositeCommand
+	CompositeCommand -> Optional : map
+	activate Optional
+		Optional -> Optional : isEmpty
+		activate Optional
+			Optional --> Optional : boolean
+		deactivate Optional
+		Optional -> Optional : empty
+		activate Optional
+			Optional --> Optional : Optional
+		deactivate Optional
+		Optional -> Function : apply
+		activate Function
+			Function --> Optional : Object
+		deactivate Function
+		Optional -> Optional : ofNullable
+		activate Optional
+			Optional --> Optional : Optional
+		deactivate Optional
+		Optional --> CompositeCommand : Optional
+	deactivate Optional
+	CompositeCommand -> Optional : orElseGet
+	activate Optional
+		Optional -> Supplier : get
+		activate Supplier
+			Supplier --> Optional : Object
+		deactivate Supplier
+		Optional --> CompositeCommand : Object
+	deactivate Optional
 deactivate CompositeCommand
 
 @enduml
