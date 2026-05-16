@@ -626,7 +626,9 @@
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>MacroCommand.createNestedContext.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
-                            <startMethod>buildCommandContextFor</startMethod>
+                            <startMethod>acceptPreparedContext</startMethod>
+                            <classBlacklistRegexp>.*(Logger|Builder)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(builder)</methodBlacklistRegexp>
                             <ignoreStandardClasses>false</ignoreStandardClasses>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
@@ -667,23 +669,6 @@
                         </configuration>
                     </execution>
                     <execution>
-                        <id>generate-business-composite-command-undo-execution-diagram</id>
-                        <goals>
-                            <goal>generateSequenceDiagram</goal>
-                        </goals>
-                        <phase>generate-test-resources</phase>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>MacroCommand.executeUndo.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
-                            <startMethod>executeUndo</startMethod>
-                            <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
-                            <showReturnTypes>true</showReturnTypes>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>generate-business-composite-command-nested-undo-execution-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
@@ -697,6 +682,23 @@
                             <classBlacklistRegexp>.*(Logger|IOBase|Builder.*|NestedCommand|Context)</classBlacklistRegexp>
                             <methodBlacklistRegexp>.*(getLog.*|builder|self|after.*)|do.*</methodBlacklistRegexp>
 <!--                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>-->
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-undo-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.executeUndo.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
+                            <startMethod>executeUndo</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

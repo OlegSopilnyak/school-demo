@@ -1,0 +1,32 @@
+[plantuml,RootCommand.doLifeCycle.puml.png,png]
+----
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Command.doCommand(context);
+if (context.isReady) then (true)
+    :context.state:WORK;
+    :Command.self;
+    :Command.executeDo(context);
+    :Command.afterExecute(context);
+    if (context.isDone) then (true)
+        :result = context.result;
+        if (result.isEmpty) then (empty)
+            :logger.warn;
+        else (exists)
+            :context.resultData = result.getOrNull;
+            :context.state:DONE;
+        endif
+    else (false)
+        :logger.warn;
+    endif
+else (false)
+    :logger.warn;
+    :context.state:FAIL;
+endif
+stop
+
+@enduml
+
+----

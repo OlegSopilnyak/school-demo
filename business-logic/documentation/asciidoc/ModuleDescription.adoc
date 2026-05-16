@@ -141,22 +141,32 @@ In that case *Command* entity behavior closer to `Strategy Design Pattern`.
 .Command Execution Behavior
 [%collapsible]
 ====
-{tab}1.First of all *ActionExecutor* creates the Command Context
+* First of all *ActionExecutor* creates the Command Context
 
 .CommandFactory.makeCommandContext Sequence
 include::../puml/sequence-diagrams/RootCommand.createContext.puml[]
 
-{tab}2.Then it passes made context to the *Command* instance for execution
+* Then it passes built context to the *Command* instance for execution
 
 .Command.doCommand Sequence
 include::../puml/sequence-diagrams/RootCommand.doCommand.puml[]
 
-{tab}3.Or for action execution's rollback (uses in CompositeCommand)
+.Command.doCommand Activity Diagram
+include::../puml/sequence-diagrams/RootCommand.doLifeCycle.puml[]
+====
 
+{tab}Concrete implementation of the *Command*, usually is connected to the external world using injected external access facades (*Persistence Facade* for example) which allows Command's execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC). +
+{tab}Each *Command* which affecting external data during execution *should* prepare data-set and store it into Context (`undoParameter`) for correct Command's rollback process (to keep external data integrity).
+
+.Command Execution Rollback Behavior
+[%collapsible]
+====
 .Command.undoCommand Sequence
 include::../puml/sequence-diagrams/RootCommand.undoCommand.puml[]
+
+.Command.undoCommand Activity Diagram
+include::../puml/sequence-diagrams/RootCommand.undoLifeCycle.puml[]
 ====
-{tab}Concrete implementation of the *Command*, usually is connected to the external world using injected external access facades (*Persistence Facade* for example) which allows Command's execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC).
 
 ==== Composite Command Execution
 {tab}The *Composite Command* entity is still the *Command* but has some different behavior in compare. The *Composite Command* usually doesn't interact with external world, delegating it to the `nested` *Commands*. There is no big difference between *RootCommand* and *CompositeCommand* context making. Only input parameter of the command execution `redoParameter -` uses special parameter type (*MacroCommandParameter*).
@@ -164,7 +174,7 @@ include::../puml/sequence-diagrams/RootCommand.undoCommand.puml[]
 .MacroCommand Architecture
 include::../puml/class-diagrams/MacroCommand.Model.puml[]
 
-Contains the nested command-contexts ordered the same way as it is in CompositeCommand's nested commands list.
+{tab}Which contains the nested command-contexts ordered the same way as it is in CompositeCommand's nested commands list. If something went wrong with nested-command execution during *CompositeCommand* execution then all nested commands will be rolling back (`Command.undoCommand`).
 
 .Composite Command Making Context
 [%collapsible]
@@ -199,6 +209,7 @@ include::../puml/sequence-diagrams/MacroCommand.executeDoNested.puml[]
 
 '''
 ====
+The main goal of the composite rollback is to restore external data changes.
 
 .Composite Command Execution Rollback
 [%collapsible]

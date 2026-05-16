@@ -3,31 +3,27 @@
 @startuml
 
 participant CompositeCommand
-participant NestedCommand
+participant PrepareNestedContextVisitor
 participant RootCommand
-participant Logger
+participant Context
 
 activate CompositeCommand
-	CompositeCommand -> NestedCommand : acceptPreparedContext
-	activate NestedCommand
-		NestedCommand --> CompositeCommand : Context
-	deactivate NestedCommand
-	CompositeCommand -> RootCommand : getLog
-	activate RootCommand
-		RootCommand --> CompositeCommand : Logger
-	deactivate RootCommand
-	CompositeCommand -> NestedCommand : getId
-	activate NestedCommand
-		NestedCommand --> CompositeCommand : String
-	deactivate NestedCommand
-	CompositeCommand -> Logger : error
-	activate Logger
-		Logger --> CompositeCommand : void
-	deactivate Logger
-	CompositeCommand -> NestedCommand : createFailedContext
-	activate NestedCommand
-		NestedCommand --> CompositeCommand : Context
-	deactivate NestedCommand
+	CompositeCommand -> PrepareNestedContextVisitor : prepareContext
+	activate PrepareNestedContextVisitor
+		PrepareNestedContextVisitor -> RootCommand : createContext
+		activate RootCommand
+			RootCommand -> Context : setState
+			activate Context
+				Context --> RootCommand : void
+			deactivate Context
+			RootCommand -> Context : setState
+			activate Context
+				Context --> RootCommand : void
+			deactivate Context
+			RootCommand --> PrepareNestedContextVisitor : Context
+		deactivate RootCommand
+		PrepareNestedContextVisitor --> CompositeCommand : Context
+	deactivate PrepareNestedContextVisitor
 deactivate CompositeCommand
 
 @enduml

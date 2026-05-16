@@ -701,8 +701,12 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <details>
 <summary class="title">Command Execution Behavior</summary>
 <div class="content">
-<div class="paragraph">
-<p>&#160;&#160;&#160;&#160;1.First of all <strong>ActionExecutor</strong> creates the Command Context</p>
+<div class="ulist">
+<ul>
+<li>
+<p>First of all <strong>ActionExecutor</strong> creates the Command Context</p>
+</li>
+</ul>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -710,8 +714,12 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 <div class="title">Figure 18. CommandFactory.makeCommandContext Sequence</div>
 </div>
-<div class="paragraph">
-<p>&#160;&#160;&#160;&#160;2.Then it passes made context to the <strong>Command</strong> instance for execution</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Then it passes built context to the <strong>Command</strong> instance for execution</p>
+</li>
+</ul>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -719,20 +727,35 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 <div class="title">Figure 19. Command.doCommand Sequence</div>
 </div>
-<div class="paragraph">
-<p>&#160;&#160;&#160;&#160;3.Or for action execution&#8217;s rollback (uses in CompositeCommand)</p>
-</div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/RootCommand.undoCommand.puml.png.png" alt="RootCommand.undoCommand.puml" width="384" height="448">
+<img src="./images/RootCommand.doLifeCycle.puml.png.png" alt="RootCommand.doLifeCycle.puml" width="596" height="714">
 </div>
-<div class="title">Figure 20. Command.undoCommand Sequence</div>
+<div class="title">Figure 20. Command.doCommand Activity Diagram</div>
 </div>
 </div>
 </details>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;Concrete implementation of the <strong>Command</strong>, usually is connected to the external world using injected external access facades (<strong>Persistence Facade</strong> for example) which allows Command&#8217;s execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC).</p>
+<p>&#160;&#160;&#160;&#160;Concrete implementation of the <strong>Command</strong>, usually is connected to the external world using injected external access facades (<strong>Persistence Facade</strong> for example) which allows Command&#8217;s execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC).<br>
+&#160;&#160;&#160;&#160;Each <strong>Command</strong> which affecting external data during execution <strong>should</strong> prepare data-set and store it into Context (<code>undoParameter</code>) for correct Command&#8217;s rollback process (to keep external data integrity).</p>
 </div>
+<details>
+<summary class="title">Command Execution Rollback Behavior</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/RootCommand.undoCommand.puml.png.png" alt="RootCommand.undoCommand.puml" width="384" height="448">
+</div>
+<div class="title">Figure 21. Command.undoCommand Sequence</div>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/RootCommand.undoLifeCycle.puml.png.png" alt="RootCommand.undoLifeCycle.puml" width="353" height="531">
+</div>
+<div class="title">Figure 22. Command.undoCommand Activity Diagram</div>
+</div>
+</div>
+</details>
 </div>
 <div class="sect3">
 <h4 id="_composite_command_execution">2.3.2. Composite Command Execution</h4>
@@ -743,10 +766,10 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.Model.puml.png.png" alt="MacroCommand.Model.puml" width="731" height="206">
 </div>
-<div class="title">Figure 21. MacroCommand Architecture</div>
+<div class="title">Figure 23. MacroCommand Architecture</div>
 </div>
 <div class="paragraph">
-<p>Contains the nested command-contexts ordered the same way as it is in CompositeCommand&#8217;s nested commands list.</p>
+<p>&#160;&#160;&#160;&#160;Which contains the nested command-contexts ordered the same way as it is in CompositeCommand&#8217;s nested commands list. If something went wrong with nested-command execution during <strong>CompositeCommand</strong> execution then all nested commands will be rolling back (<code>Command.undoCommand</code>).</p>
 </div>
 <details>
 <summary class="title">Composite Command Making Context</summary>
@@ -755,13 +778,13 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.createContext.puml.png.png" alt="MacroCommand.createContext.puml" width="384" height="422">
 </div>
-<div class="title">Figure 22. CompositeCommand.createContext Sequence</div>
+<div class="title">Figure 24. CompositeCommand.createContext Sequence</div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.createNestedContext.puml.png.png" alt="MacroCommand.createNestedContext.puml" width="495" height="396">
+<img src="./images/MacroCommand.createNestedContext.puml.png.png" alt="MacroCommand.createNestedContext.puml" width="551" height="336">
 </div>
-<div class="title">Figure 23. CompositeCommand.createNestedContext Sequence</div>
+<div class="title">Figure 25. CompositeCommand.createNestedContext Sequence</div>
 </div>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;The nested command context creation process is going through special visitor to address it to the correct place.</p>
@@ -770,7 +793,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.Context.Visitor.puml.png.png" alt="MacroCommand.Context.Visitor.puml" width="637" height="259">
 </div>
-<div class="title">Figure 24. CompositeCommand.acceptPreparedContext Visitor</div>
+<div class="title">Figure 26. CompositeCommand.acceptPreparedContext Visitor</div>
 </div>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;Any method of which can be overridden in the children of <strong>MacroCommand</strong> in order to change standard behavior for particular type of the nested-command&#8217;s context creation.</p>
@@ -785,7 +808,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.executeDo.puml.png.png" alt="MacroCommand.executeDo.puml" width="546" height="422">
 </div>
-<div class="title">Figure 25. CompositeCommand.executeDo Sequence</div>
+<div class="title">Figure 27. CompositeCommand.executeDo Sequence</div>
 </div>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;Executing nested commands, <strong>CompositeCommand</strong> calls <code>executeDoNested</code> for each one.</p>
@@ -794,7 +817,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.executeDoNested.puml.png.png" alt="MacroCommand.executeDoNested.puml" width="828" height="717">
 </div>
-<div class="title">Figure 26. CompositeCommand.executeDoNested Sequence</div>
+<div class="title">Figure 28. CompositeCommand.executeDoNested Sequence</div>
 </div>
 <hr>
 </div>
@@ -806,7 +829,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.executeUndo.puml.png.png" alt="MacroCommand.executeUndo.puml" width="371" height="362">
 </div>
-<div class="title">Figure 27. CompositeCommand.undoCommand Sequence</div>
+<div class="title">Figure 29. CompositeCommand.undoCommand Sequence</div>
 </div>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;Rolling back nested commands, <strong>CompositeCommand</strong> calls <code>executeUndoNested</code> for each one.</p>
@@ -815,7 +838,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <img src="./images/MacroCommand.executeUndoNested.puml.png.png" alt="MacroCommand.executeUndoNested.puml" width="828" height="717">
 </div>
-<div class="title">Figure 28. CompositeCommand.undoCommand Sequence</div>
+<div class="title">Figure 30. CompositeCommand.undoCommand Sequence</div>
 </div>
 </div>
 </details>
@@ -826,6 +849,17 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="paragraph">
 <p>There are two special children types of <strong>MacroCommand</strong><br>
 <code>SequentialCommandsTask</code> and <code>ParallelCommandsTask</code><br></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.Advanced.Model.puml.png.png" alt="MacroCommand.Advanced.Model.puml" width="1196" height="110">
+</div>
+<div class="title">Figure 31. Advanced MacroCommand Architecture</div>
+</div>
+<div class="paragraph">
+<p>which have changed the behavior of nested command processing (<strong>executeNested</strong> and <strong>rollbackNested</strong>).<br>
+As you can guess <code>SequentialCommandsTask</code> is processing nested commands in sequential way instead of <code>ParallelCommandsTask</code> doing it in parallel one.<br>
+The extra option of <code>SequentialCommandsTask</code> is possibility to transfer result of nested-command execution to the next one what is going to be executed.</p>
 </div>
 <hr>
 </div>
@@ -851,7 +885,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-16 13:11:05 +0300
+Last updated 2026-05-16 19:24:57 +0300
 </div>
 </div>
 </body>

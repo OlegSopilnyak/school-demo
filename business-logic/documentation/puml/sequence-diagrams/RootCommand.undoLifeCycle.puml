@@ -1,0 +1,23 @@
+[plantuml,RootCommand.undoLifeCycle.puml.png,png]
+----
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:Command.undoCommand(context);
+if (context.isDone) then (true)
+    :context.state:WORK;
+    :Command.self;
+    :Command.executeUndo(context);
+    :context.state:UNDONE;
+    :Command.afterRollback(context);
+    :context.resultData = null;
+else (false)
+    :logger.warn;
+    :context.state:FAIL;
+endif
+stop
+
+@enduml
+
+----
