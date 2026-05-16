@@ -123,7 +123,7 @@ include::../puml/sequence-diagrams/CommandActionExecutor.processMessageAction.pu
 
 === Command Execution Universe
 ==== Core Command Execution
-{tab}As you understood, there is no *Action* entity here, *Command* entity is used instead. The *Command* entity here is no an exact implementation of the `Command Design Pattern` because for each business logic action's request new instance of the *Command* didn't create. #Instead#, each action execution creates `command context` in order to use it with particular command instance. +
+{tab}As you understood, there is no *Action* entity here, *Command* entity is used instead. The *Command* entity here isn't exact implementation of the `Command Design Pattern` because for each business logic action's request, new instance of the *Command* didn't create. #Instead#, each action execution creates `command context` in order to use it with particular command instance. +
 
 .CommandContext Architecture
 include::../puml/class-diagrams/CommandContext.Model.puml[]
@@ -158,7 +158,7 @@ include::../puml/sequence-diagrams/RootCommand.undoCommand.puml[]
 ====
 {tab}Concrete implementation of the *Command*, usually is connected to the external world using injected external access facades (*Persistence Facade* for example) which allows Command's execution to change or retrieve data of the Database or any other DataSources(Messaging or RPC).
 
-==== Advanced Command Execution
+==== Composite Command Execution
 {tab}The *Composite Command* entity is still the *Command* but has some different behavior in compare. The *Composite Command* usually doesn't interact with external world, delegating it to the `nested` *Commands*. There is no big difference between *RootCommand* and *CompositeCommand* context making. Only input parameter of the command execution `redoParameter -` uses special parameter type (*MacroCommandParameter*).
 
 .MacroCommand Architecture
@@ -172,8 +172,16 @@ Contains the nested command-contexts ordered the same way as it is in CompositeC
 .CompositeCommand.createContext Sequence
 include::../puml/sequence-diagrams/MacroCommand.createContext.puml[]
 
-.CompositeCommand.createContext Sequence
+.CompositeCommand.createNestedContext Sequence
 include::../puml/sequence-diagrams/MacroCommand.createNestedContext.puml[]
+
+{tab}The nested command context creation process is going through special visitor to address it to the correct place.
+
+.CompositeCommand.acceptPreparedContext Visitor
+include::../puml/class-diagrams/MacroCommand.Context.Visitor.puml[]
+
+{tab}Any method of which can be overridden in the children of *MacroCommand* in order to change standard behavior for particular type of the nested-command's context creation.
+
 '''
 ====
 
@@ -181,17 +189,46 @@ include::../puml/sequence-diagrams/MacroCommand.createNestedContext.puml[]
 [%collapsible]
 ====
 
+.CompositeCommand.executeDo Sequence
+include::../puml/sequence-diagrams/MacroCommand.executeDo.puml[]
+
+{tab}Executing nested commands, *CompositeCommand* calls `executeDoNested` for each one.
+
 .CompositeCommand.executeDoNested Sequence
 include::../puml/sequence-diagrams/MacroCommand.executeDoNested.puml[]
 
-.CompositeCommand.undoCommand Sequence
-include::../puml/sequence-diagrams/MacroCommand.undoCommand.puml[]
 '''
 ====
+
+.Composite Command Execution Rollback
+[%collapsible]
+====
+
+.CompositeCommand.undoCommand Sequence
+include::../puml/sequence-diagrams/MacroCommand.executeUndo.puml[]
+
+{tab}Rolling back nested commands, *CompositeCommand* calls `executeUndoNested` for each one.
+
+.CompositeCommand.undoCommand Sequence
+include::../puml/sequence-diagrams/MacroCommand.executeUndoNested.puml[]
+
+====
+'''
+==== Advanced Composite Command
+There are two special children types of *MacroCommand* +
+`SequentialCommandsTask` and `ParallelCommandsTask` +
+
+.Advanced MacroCommand Architecture
+include::../puml/class-diagrams/MacroCommand.Advanced.Model.puml[]
+
+which have changed the behavior of nested command processing (*executeNested* and *rollbackNested*). +
+As you can guess `SequentialCommandsTask` is processing nested commands in sequential way instead of `ParallelCommandsTask` doing it in parallel one. +
+The extra option of `SequentialCommandsTask` is possibility to transfer result of nested-command execution to the next one what is going to be executed.
+
 '''
 === Commands Factories
-{tab}The commands factories in commands universe play two roles:
+{tab}The commands factories in commands universe playing two main roles:
 
-* joining commands by commands family
-* creating command-context before action's execution.
+* joining commands by commands family (Abstract Factory)
+* building command-context before action's execution (Builder).
 

@@ -1,0 +1,30 @@
+[plantuml,MacroCommand.executeUndo.puml.png,png]
+----
+@startuml
+
+participant MacroCommand
+participant Context
+participant NestedCommand
+
+activate MacroCommand
+	MacroCommand -> Context : getUndoParameter
+	activate Context
+		Context --> MacroCommand : Input
+	deactivate Context
+	MacroCommand -> MacroCommand : rollbackNested
+	activate MacroCommand
+		MacroCommand --> MacroCommand : Deque
+	deactivate MacroCommand
+	MacroCommand -> NestedCommand : getId
+	activate NestedCommand
+		NestedCommand --> MacroCommand : String
+	deactivate NestedCommand
+	MacroCommand -> Context : failed
+	activate Context
+		Context --> MacroCommand : Context
+	deactivate Context
+deactivate MacroCommand
+
+@enduml
+
+----

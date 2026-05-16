@@ -423,6 +423,43 @@
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-nested-command-context-visitor-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.Context.Visitor.puml</outputFilename>
+                            <whitelistRegexp>
+                                oleg.sopilnyak.test.service.command.*.*(PrepareNestedContextVisitor)
+                            </whitelistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-advanced-composite-commands-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.Advanced.Model.puml</outputFilename>
+                            <whitelistRegexp>
+                                oleg.sopilnyak.test.service.command.executable.core.*(CommandsTask)
+                            </whitelistRegexp>
+                            <hideFields>true</hideFields>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
                     <!--
                     UML Sequence Diagrams
                     -->
@@ -603,28 +640,11 @@
                         <phase>generate-test-resources</phase>
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>MacroCommand.doCommand.puml</outputFilename>
+                            <outputFilename>MacroCommand.executeDo.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
                             <startMethod>executeDo</startMethod>
-                            <classBlacklistRegexp>.*(Logger|IOBase|Input|ObjectUtils|NestedCommand|CommandContext|MacroCommandParameter|NestedContextDeque)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*)</methodBlacklistRegexp>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
-                            <showReturnTypes>true</showReturnTypes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-business-composite-command-undo-execution-diagram</id>
-                        <goals>
-                            <goal>generateSequenceDiagram</goal>
-                        </goals>
-                        <phase>generate-test-resources</phase>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>MacroCommand.undoCommand.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
-                            <startMethod>executeUndo</startMethod>
-                            <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*)</methodBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Logger|IOBase|Input|ObjectUtils|NestedCommand|CommandContext|Context|NestedContextDeque)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
@@ -640,8 +660,43 @@
                             <outputFilename>MacroCommand.executeDoNested.puml</outputFilename>
                             <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
                             <startMethod>executeDoNestedWithNotification</startMethod>
-                            <classBlacklistRegexp>.*(Builder|Logger|IOBase|History|NestedCommand|RootCommand|ActionContext)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|builder)</methodBlacklistRegexp>
+                            <classBlacklistRegexp>.*(Builder|Logger|IOBase|History|NestedCommand|Context)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|builder|undo.*|self|after.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-undo-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.executeUndo.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
+                            <startMethod>executeUndo</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-nested-undo-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.executeUndoNested.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.type.core.CompositeCommand</startClass>
+                            <startMethod>executeUndoNested</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase|Builder.*|NestedCommand|Context)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|builder|self|after.*)|do.*</methodBlacklistRegexp>
+<!--                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>-->
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

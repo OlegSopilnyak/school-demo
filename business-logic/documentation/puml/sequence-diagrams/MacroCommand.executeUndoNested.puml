@@ -1,4 +1,4 @@
-[plantuml,MacroCommand.executeDoNested.puml.png,png]
+[plantuml,MacroCommand.executeUndoNested.puml.png,png]
 ----
 @startuml
 
@@ -13,7 +13,7 @@ activate CompositeCommand
 	activate CompositeCommand
 		CompositeCommand --> CompositeCommand : CommandActionExecutor
 	deactivate CompositeCommand
-	CompositeCommand -> CommandActionExecutor : commitAction
+	CompositeCommand -> CommandActionExecutor : rollbackAction
 	activate CommandActionExecutor
 		CommandActionExecutor -> CommandActionExecutor : buildMessage
 		activate CommandActionExecutor
@@ -29,9 +29,9 @@ activate CompositeCommand
 			activate CommandMessage
 				CommandMessage --> CommandActionExecutor : CommandMessage$Direction
 			deactivate CommandMessage
-			CommandActionExecutor -> RootCommand : doCommand
+			CommandActionExecutor -> RootCommand : undoCommand
 			activate RootCommand
-				RootCommand -> CommandExecutable : executeDo
+				RootCommand -> CommandExecutable : executeUndo
 				activate CommandExecutable
 					CommandExecutable --> RootCommand : void
 				deactivate CommandExecutable

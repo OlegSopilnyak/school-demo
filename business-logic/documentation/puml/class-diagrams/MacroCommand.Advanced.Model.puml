@@ -1,0 +1,27 @@
+[plantuml,MacroCommand.Advanced.Model.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+abstract class ParallelCommandsTask {
+	{field} {static} +EXECUTOR_BEAN_NAME : String
+	{field} #executor : Executor
+	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+}
+
+
+abstract class SequentialCommandsTask {
+	{method} +executeNested ( contexts : Deque , listener : StateChangedListener ) : Deque
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method} +transferResult ( executedCommand : RootCommand , toTransfer : Object , toExecute : Context ) : void
+}
+
+
+
+
+
+hide fields
+
+@enduml
+----

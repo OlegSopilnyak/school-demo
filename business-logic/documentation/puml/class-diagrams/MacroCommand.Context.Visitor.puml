@@ -1,0 +1,26 @@
+[plantuml,MacroCommand.Context.Visitor.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+interface PrepareNestedContextVisitor {
+	{method} +prepareContext ( command : AuthorityPersonCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : CourseCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : FacultyCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : NestedCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : ParallelCommandsTask , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : PrincipalProfileCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : RootCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : SequentialCommandsTask , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : StudentCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : StudentProfileCommand , mainInputParameter : Input ) : Context
+	{method} +prepareContext ( command : StudentsGroupCommand , mainInputParameter : Input ) : Context
+}
+
+
+
+
+
+
+@enduml
+----

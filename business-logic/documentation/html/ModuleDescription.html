@@ -453,9 +453,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_command_execution_universe">2.3. Command Execution Universe</a>
 <ul class="sectlevel3">
 <li><a href="#_core_command_execution">2.3.1. Core Command Execution</a></li>
-<li><a href="#_advanced_command_execution">2.3.2. Advanced Command Execution</a></li>
+<li><a href="#_composite_command_execution">2.3.2. Composite Command Execution</a></li>
+<li><a href="#_advanced_composite_command">2.3.3. Advanced Composite Command</a></li>
 </ul>
 </li>
+<li><a href="#_commands_factories">2.4. Commands Factories</a></li>
 </ul>
 </li>
 </ul>
@@ -657,7 +659,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="sect3">
 <h4 id="_core_command_execution">2.3.1. Core Command Execution</h4>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;As you understood, there is no <strong>Action</strong> entity here, <strong>Command</strong> entity is used instead. The <strong>Command</strong> entity here is no an exact implementation of the <code>Command Design Pattern</code> because for each business logic action&#8217;s request new instance of the <strong>Command</strong> didn&#8217;t create. <mark>Instead</mark>, each action execution creates <code>command context</code> in order to use it with particular command instance.<br></p>
+<p>&#160;&#160;&#160;&#160;As you understood, there is no <strong>Action</strong> entity here, <strong>Command</strong> entity is used instead. The <strong>Command</strong> entity here isn&#8217;t exact implementation of the <code>Command Design Pattern</code> because for each business logic action&#8217;s request, new instance of the <strong>Command</strong> didn&#8217;t create. <mark>Instead</mark>, each action execution creates <code>command context</code> in order to use it with particular command instance.<br></p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -733,7 +735,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 </div>
 <div class="sect3">
-<h4 id="_advanced_command_execution">2.3.2. Advanced Command Execution</h4>
+<h4 id="_composite_command_execution">2.3.2. Composite Command Execution</h4>
 <div class="paragraph">
 <p>&#160;&#160;&#160;&#160;The <strong>Composite Command</strong> entity is still the <strong>Command</strong> but has some different behavior in compare. The <strong>Composite Command</strong> usually doesn&#8217;t interact with external world, delegating it to the <code>nested</code> <strong>Commands</strong>. There is no big difference between <strong>RootCommand</strong> and <strong>CompositeCommand</strong> context making. Only input parameter of the command execution <code>redoParameter -</code> uses special parameter type (<strong>MacroCommandParameter</strong>).</p>
 </div>
@@ -747,7 +749,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <p>Contains the nested command-contexts ordered the same way as it is in CompositeCommand&#8217;s nested commands list.</p>
 </div>
 <details>
-<summary class="title">Composite Command Execution</summary>
+<summary class="title">Composite Command Making Context</summary>
 <div class="content">
 <div class="imageblock">
 <div class="content">
@@ -757,19 +759,91 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.executeDoNested.puml.png.png" alt="MacroCommand.executeDoNested.puml" width="679" height="1081">
+<img src="./images/MacroCommand.createNestedContext.puml.png.png" alt="MacroCommand.createNestedContext.puml" width="495" height="396">
 </div>
-<div class="title">Figure 23. CompositeCommand.executeDoNested Sequence</div>
+<div class="title">Figure 23. CompositeCommand.createNestedContext Sequence</div>
+</div>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;The nested command context creation process is going through special visitor to address it to the correct place.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.undoCommand.puml.png.png" alt="MacroCommand.undoCommand.puml" width="666" height="1289">
+<img src="./images/MacroCommand.Context.Visitor.puml.png.png" alt="MacroCommand.Context.Visitor.puml" width="637" height="259">
 </div>
-<div class="title">Figure 24. CompositeCommand.undoCommand Sequence</div>
+<div class="title">Figure 24. CompositeCommand.acceptPreparedContext Visitor</div>
+</div>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;Any method of which can be overridden in the children of <strong>MacroCommand</strong> in order to change standard behavior for particular type of the nested-command&#8217;s context creation.</p>
+</div>
+<hr>
+</div>
+</details>
+<details>
+<summary class="title">Composite Command Execution</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.executeDo.puml.png.png" alt="MacroCommand.executeDo.puml" width="546" height="422">
+</div>
+<div class="title">Figure 25. CompositeCommand.executeDo Sequence</div>
+</div>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;Executing nested commands, <strong>CompositeCommand</strong> calls <code>executeDoNested</code> for each one.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.executeDoNested.puml.png.png" alt="MacroCommand.executeDoNested.puml" width="828" height="717">
+</div>
+<div class="title">Figure 26. CompositeCommand.executeDoNested Sequence</div>
+</div>
+<hr>
+</div>
+</details>
+<details>
+<summary class="title">Composite Command Execution Rollback</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.executeUndo.puml.png.png" alt="MacroCommand.executeUndo.puml" width="371" height="362">
+</div>
+<div class="title">Figure 27. CompositeCommand.undoCommand Sequence</div>
+</div>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;Rolling back nested commands, <strong>CompositeCommand</strong> calls <code>executeUndoNested</code> for each one.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/MacroCommand.executeUndoNested.puml.png.png" alt="MacroCommand.executeUndoNested.puml" width="828" height="717">
+</div>
+<div class="title">Figure 28. CompositeCommand.undoCommand Sequence</div>
 </div>
 </div>
 </details>
 <hr>
+</div>
+<div class="sect3">
+<h4 id="_advanced_composite_command">2.3.3. Advanced Composite Command</h4>
+<div class="paragraph">
+<p>There are two special children types of <strong>MacroCommand</strong><br>
+<code>SequentialCommandsTask</code> and <code>ParallelCommandsTask</code><br></p>
+</div>
+<hr>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_commands_factories">2.4. Commands Factories</h3>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;The commands factories in commands universe playing two main roles:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>joining commands by commands family (Abstract Factory)</p>
+</li>
+<li>
+<p>building command-context before action&#8217;s execution (Builder).</p>
+</li>
+</ul>
 </div>
 </div>
 </div>
@@ -777,7 +851,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-15 19:30:14 +0300
+Last updated 2026-05-16 13:11:05 +0300
 </div>
 </div>
 </body>

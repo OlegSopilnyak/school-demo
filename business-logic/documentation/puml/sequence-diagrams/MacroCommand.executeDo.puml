@@ -1,0 +1,34 @@
+[plantuml,MacroCommand.executeDo.puml.png,png]
+----
+@startuml
+
+participant MacroCommand
+participant MacroCommandParameter
+participant CompositeCommand
+
+activate MacroCommand
+	MacroCommand -> MacroCommandParameter : getNestedContexts
+	activate MacroCommandParameter
+		MacroCommandParameter --> MacroCommand : Deque
+	deactivate MacroCommandParameter
+	MacroCommand -> CompositeCommand : executeNested
+	activate CompositeCommand
+		CompositeCommand --> MacroCommand : Deque
+	deactivate CompositeCommand
+	MacroCommand -> MacroCommand : updateMacroCommandParameter
+	activate MacroCommand
+		MacroCommand -> MacroCommandParameter : getNestedContexts
+		activate MacroCommandParameter
+			MacroCommandParameter --> MacroCommand : Deque
+		deactivate MacroCommandParameter
+		MacroCommand -> MacroCommandParameter : updateNestedContexts
+		activate MacroCommandParameter
+			MacroCommandParameter --> MacroCommand : void
+		deactivate MacroCommandParameter
+		MacroCommand --> MacroCommand : void
+	deactivate MacroCommand
+deactivate MacroCommand
+
+@enduml
+
+----
