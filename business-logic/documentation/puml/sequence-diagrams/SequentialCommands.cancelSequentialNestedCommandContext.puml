@@ -1,25 +1,15 @@
-[plantuml,SequentialCommandsTask.executeDoNestedFailed.puml.png,png]
+[plantuml,SequentialCommands.cancelSequentialNestedCommandContext.puml.png,png]
 ----
 @startuml
 
 participant SequentialCommandsTask
 participant Context
-participant RootCommand
-participant Logger
 
 activate SequentialCommandsTask
 	SequentialCommandsTask -> Context : getHistory
 	activate Context
 		Context --> SequentialCommandsTask : Context$LifeCycleHistory
 	deactivate Context
-	SequentialCommandsTask -> RootCommand : getLog
-	activate RootCommand
-		RootCommand --> SequentialCommandsTask : Logger
-	deactivate RootCommand
-	SequentialCommandsTask -> Logger : debug
-	activate Logger
-		Logger --> SequentialCommandsTask : void
-	deactivate Logger
 	SequentialCommandsTask -> Context : setState
 	activate Context
 		Context --> SequentialCommandsTask : void

@@ -1,0 +1,21 @@
+[plantuml,SequentialCommands.doSequentialNestedCommand.puml.png,png]
+----
+@startuml
+
+participant SequentialCommandsTask
+participant CompositeCommand
+
+activate SequentialCommandsTask
+	SequentialCommandsTask -> SequentialCommandsTask : transferResult
+	activate SequentialCommandsTask
+		SequentialCommandsTask --> SequentialCommandsTask : void
+	deactivate SequentialCommandsTask
+	SequentialCommandsTask -> CompositeCommand : executeDoNested
+	activate CompositeCommand
+		CompositeCommand --> SequentialCommandsTask : Context
+	deactivate CompositeCommand
+deactivate SequentialCommandsTask
+
+@enduml
+
+----

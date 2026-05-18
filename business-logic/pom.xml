@@ -452,7 +452,7 @@
                             <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
                             <outputFilename>MacroCommand.Advanced.Model.puml</outputFilename>
                             <whitelistRegexp>
-                                oleg.sopilnyak.test.service.command.executable.core.*(CommandsTask)
+                                oleg.sopilnyak.test.service.command.executable.core.*(CommandsTask|MacroCommand)
                             </whitelistRegexp>
                             <hideFields>true</hideFields>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
@@ -669,6 +669,24 @@
                         </configuration>
                     </execution>
                     <execution>
+                        <id>generate-business-composite-command-nested-do-after-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.afterExecutionProcessing.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
+                            <startMethod>afterExecutionProcessing</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase|Input|NestedCommand|Context|Function|Integer|Optional|Collectors|Stream|AtomicReference|Deque)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|is.*|stream)</methodBlacklistRegexp>
+                            <ignoreStandardClasses>false</ignoreStandardClasses>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
                         <id>generate-business-composite-command-nested-undo-execution-diagram</id>
                         <goals>
                             <goal>generateSequenceDiagram</goal>
@@ -681,7 +699,6 @@
                             <startMethod>executeUndoNested</startMethod>
                             <classBlacklistRegexp>.*(Logger|IOBase|Builder.*|NestedCommand|Context)</classBlacklistRegexp>
                             <methodBlacklistRegexp>.*(getLog.*|builder|self|after.*)|do.*</methodBlacklistRegexp>
-<!--                            <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>-->
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>
@@ -699,6 +716,58 @@
                             <startMethod>executeUndo</startMethod>
                             <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
                             <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-business-composite-command-nested-undo-after-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>MacroCommand.afterRollbackProcessing.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
+                            <startMethod>afterRollbackProcessing</startMethod>
+                            <classBlacklistRegexp>.*(Logger|IOBase|Input|NestedCommand|Context|Function|Integer|Optional|Collectors|Stream|AtomicReference|Deque)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|is.*|stream)</methodBlacklistRegexp>
+                            <ignoreStandardClasses>false</ignoreStandardClasses>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-sequential-commands-execution-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>SequentialCommands.doSequentialNestedCommand.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask</startClass>
+                            <startMethod>doSequentialNestedCommand</startMethod>
+                            <classBlacklistRegexp>.*(Logger|NestedCommand|Context)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|executeDoNestedWith.*)</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <showReturnTypes>true</showReturnTypes>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-sequential-commands-cancel-diagram</id>
+                        <goals>
+                            <goal>generateSequenceDiagram</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
+                            <outputFilename>SequentialCommands.cancelSequentialNestedCommandContext.puml</outputFilename>
+                            <startClass>oleg.sopilnyak.test.service.command.executable.core.SequentialCommandsTask</startClass>
+                            <startMethod>cancelSequentialNestedCommandContext</startMethod>
+                            <classBlacklistRegexp>.*(History|Listener|Logger)</classBlacklistRegexp>
+                            <methodBlacklistRegexp>.*(getLog.*|executeDoNestedWith.*)</methodBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

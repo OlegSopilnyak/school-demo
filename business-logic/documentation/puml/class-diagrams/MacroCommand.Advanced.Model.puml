@@ -3,6 +3,18 @@
 @startuml
 !pragma layout smetana
 
+abstract class MacroCommand {
+	{field} -actionExecutor : CommandActionExecutor
+	{field} -nestedCommandsList : List
+	{method} +executeDo ( context : Context ) : void
+	{method} +executeUndo ( context : Context ) : void
+	{method} +finalCommandResult ( nested : Deque ) : Object
+	{method} +fromNest () : Collection
+	{method} +rollbackNested ( contexts : Deque ) : Deque
+	{method} +toNest ( commands : NestedCommand[] ) : void
+}
+
+
 abstract class ParallelCommandsTask {
 	{field} {static} +EXECUTOR_BEAN_NAME : String
 	{field} #executor : Executor
@@ -20,6 +32,8 @@ abstract class SequentialCommandsTask {
 
 
 
+ParallelCommandsTask --|>  MacroCommand
+SequentialCommandsTask --|>  MacroCommand
 
 hide fields
 

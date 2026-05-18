@@ -131,7 +131,8 @@ include::../puml/class-diagrams/CommandContext.Model.puml[]
 . `redoParameter -` input parameter value for the *Command* execution
 . `undoParameter -` input parameter value for the *Command* execution rollback
 . `result -` the *result value* of the *Command* execution
-. `state -` the current *state* of the *Command* execution
+. `state -` the current *state* of the *Command* execution (*INIT|READY|WORK|DONE|FAIL|CANCEL|UNDONE*)
+
 . `exception -` the *cause* of failed *Command* execution
 . `startedAt -` *when* was started the *Command* execution
 . `duration -` *how long* was lasted the *Command* execution
@@ -174,7 +175,7 @@ include::../puml/sequence-diagrams/RootCommand.undoLifeCycle.puml[]
 .MacroCommand Architecture
 include::../puml/class-diagrams/MacroCommand.Model.puml[]
 
-{tab}Which contains the nested command-contexts ordered the same way as it is in CompositeCommand's nested commands list. If something went wrong with nested-command execution during *CompositeCommand* execution then all nested commands will be rolling back (`Command.undoCommand`).
+{tab}Which contains the nested command-contexts ordered the same way as it is in CompositeCommand's nested commands list. If something went wrong with nested-command execution during *CompositeCommand* execution then all nested commands will be rolling back (`Command.undoCommand`).That way it's implementing well known `*Saga* Design Pattern`.
 
 .Composite Command Making Context
 [%collapsible]
@@ -199,47 +200,59 @@ include::../puml/class-diagrams/MacroCommand.Context.Visitor.puml[]
 [%collapsible]
 ====
 
-.CompositeCommand.executeDo Sequence
-include::../puml/sequence-diagrams/MacroCommand.executeDo.puml[]
+.CompositeCommand.executeDo Activity Diagram
+include::../puml/sequence-diagrams/MacroCommand.doLifeCycle.puml[]
 
-{tab}Executing nested commands, *CompositeCommand* calls `executeDoNested` for each one.
+{tab}After nested commands execution finalizing execution results.
 
-.CompositeCommand.executeDoNested Sequence
-include::../puml/sequence-diagrams/MacroCommand.executeDoNested.puml[]
+.MacroCommand.afterExecutionProcessing Sequence
+include::../puml/sequence-diagrams/MacroCommand.afterExecutionProcessing.puml[]
 
 '''
 ====
-The main goal of the composite rollback is to restore external data changes.
+{tab}The main goal of the composite rollback is to restore affected external data. As it mentioned before it's doing through *Command.undoCommand(context)* for each nested command which context is in *Done* state.
 
 .Composite Command Execution Rollback
 [%collapsible]
 ====
 
-.CompositeCommand.undoCommand Sequence
-include::../puml/sequence-diagrams/MacroCommand.executeUndo.puml[]
-
-{tab}Rolling back nested commands, *CompositeCommand* calls `executeUndoNested` for each one.
-
-.CompositeCommand.undoCommand Sequence
-include::../puml/sequence-diagrams/MacroCommand.executeUndoNested.puml[]
+.CompositeCommand.executeUndo Activity Diagram
+include::../puml/sequence-diagrams/MacroCommand.undoLifeCycle.puml[]
 
 ====
 '''
 ==== Advanced Composite Command
-There are two special children types of *MacroCommand* +
+{tab}There are two special children types of `MacroCommand` +
 `SequentialCommandsTask` and `ParallelCommandsTask` +
 
 .Advanced MacroCommand Architecture
 include::../puml/class-diagrams/MacroCommand.Advanced.Model.puml[]
 
-which have changed the behavior of nested command processing (*executeNested* and *rollbackNested*). +
-As you can guess `SequentialCommandsTask` is processing nested commands in sequential way instead of `ParallelCommandsTask` doing it in parallel one. +
-The extra option of `SequentialCommandsTask` is possibility to transfer result of nested-command execution to the next one what is going to be executed.
+each ot them has the changed behavior of nested command processing [ *executeNested(contexts)* and *rollbackNested(contexts)* ]. +
+{tab}As you can guess `SequentialCommandsTask` is processing nested commands in sequential way instead of `ParallelCommandsTask` which doing it in parallel one. +
+{tab}The extra option of `SequentialCommandsTask` is possibility to transfer result of nested-command execution to the next nested one which is going to be executed.
+
+{tab}{tab} *Sequential Task Execution* +
+Each command from *the nest* is executing one by one till end of the nest is reached or wrong command execution detected.
+
+.SequentialCommandsTask.executeDoNested Sequence
+include::../puml/sequence-diagrams/SequentialCommands.doSequentialNestedCommand.puml[]
+
+If wrong command execution is detected the rest of nested ones will be not executing just canceled (*context.state=CANCEL*).
+
+.SequentialCommandsTask.cancelExecuteDoNested Sequence
+include::../puml/sequence-diagrams/SequentialCommands.cancelSequentialNestedCommandContext.puml[]
+
+{tab}{tab} *Parallel Task Execution* +
+All command from *the nest* is executing simultaneously in separated threads and waiting for all threads. All rolled back contexts is storing to `context.undoParameter` for further rollback of rollback action when rollback went wrong. Sounds crazy but it is. +
+{tab}{tab} *Parallel Task Execution Rollback* +
+All command from *the nest* is executing simultaneously in separated threads and waiting for all threads.
 
 '''
+
 === Commands Factories
 {tab}The commands factories in commands universe playing two main roles:
 
-* joining commands by commands family (Abstract Factory)
-* building command-context before action's execution (Builder).
+* union commands by command types (*Abstract Factory*)
+* building command-context before action's execution (*Builder*).
 

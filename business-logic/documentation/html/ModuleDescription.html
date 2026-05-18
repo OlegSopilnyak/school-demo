@@ -682,7 +682,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <p><code>result -</code> the <strong>result value</strong> of the <strong>Command</strong> execution</p>
 </li>
 <li>
-<p><code>state -</code> the current <strong>state</strong> of the <strong>Command</strong> execution</p>
+<p><code>state -</code> the current <strong>state</strong> of the <strong>Command</strong> execution (<strong>INIT|READY|WORK|DONE|FAIL|CANCEL|UNDONE</strong>)</p>
 </li>
 <li>
 <p><code>exception -</code> the <strong>cause</strong> of failed <strong>Command</strong> execution</p>
@@ -769,7 +769,7 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="title">Figure 23. MacroCommand Architecture</div>
 </div>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;Which contains the nested command-contexts ordered the same way as it is in CompositeCommand&#8217;s nested commands list. If something went wrong with nested-command execution during <strong>CompositeCommand</strong> execution then all nested commands will be rolling back (<code>Command.undoCommand</code>).</p>
+<p>&#160;&#160;&#160;&#160;Which contains the nested command-contexts ordered the same way as it is in CompositeCommand&#8217;s nested commands list. If something went wrong with nested-command execution during <strong>CompositeCommand</strong> execution then all nested commands will be rolling back (<code>Command.undoCommand</code>).That way it&#8217;s implementing well known <code><strong>Saga</strong> Design Pattern</code>.</p>
 </div>
 <details>
 <summary class="title">Composite Command Making Context</summary>
@@ -806,39 +806,33 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.executeDo.puml.png.png" alt="MacroCommand.executeDo.puml" width="546" height="422">
+<img src="./images/MacroCommand.doLifeCycle.puml.png.png" alt="MacroCommand.doLifeCycle.puml" width="845" height="919">
 </div>
-<div class="title">Figure 27. CompositeCommand.executeDo Sequence</div>
+<div class="title">Figure 27. CompositeCommand.executeDo Activity Diagram</div>
 </div>
 <div class="paragraph">
-<p>&#160;&#160;&#160;&#160;Executing nested commands, <strong>CompositeCommand</strong> calls <code>executeDoNested</code> for each one.</p>
+<p>&#160;&#160;&#160;&#160;After nested commands execution finalizing execution results.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.executeDoNested.puml.png.png" alt="MacroCommand.executeDoNested.puml" width="828" height="717">
+<img src="./images/MacroCommand.afterExecutionProcessing.puml.png.png" alt="MacroCommand.afterExecutionProcessing.puml" width="390" height="474">
 </div>
-<div class="title">Figure 28. CompositeCommand.executeDoNested Sequence</div>
+<div class="title">Figure 28. MacroCommand.afterExecutionProcessing Sequence</div>
 </div>
 <hr>
 </div>
 </details>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;The main goal of the composite rollback is to restore affected external data. As it mentioned before it&#8217;s doing through <strong>Command.undoCommand(context)</strong> for each nested command which context is in <strong>Done</strong> state.</p>
+</div>
 <details>
 <summary class="title">Composite Command Execution Rollback</summary>
 <div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.executeUndo.puml.png.png" alt="MacroCommand.executeUndo.puml" width="371" height="362">
+<img src="./images/MacroCommand.undoLifeCycle.puml.png.png" alt="MacroCommand.undoLifeCycle.puml" width="861" height="1027">
 </div>
-<div class="title">Figure 29. CompositeCommand.undoCommand Sequence</div>
-</div>
-<div class="paragraph">
-<p>&#160;&#160;&#160;&#160;Rolling back nested commands, <strong>CompositeCommand</strong> calls <code>executeUndoNested</code> for each one.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="./images/MacroCommand.executeUndoNested.puml.png.png" alt="MacroCommand.executeUndoNested.puml" width="828" height="717">
-</div>
-<div class="title">Figure 30. CompositeCommand.undoCommand Sequence</div>
+<div class="title">Figure 29. CompositeCommand.executeUndo Activity Diagram</div>
 </div>
 </div>
 </details>
@@ -847,19 +841,44 @@ Business Action Request is passing through <strong>ActionFacade</strong>, gettin
 <div class="sect3">
 <h4 id="_advanced_composite_command">2.3.3. Advanced Composite Command</h4>
 <div class="paragraph">
-<p>There are two special children types of <strong>MacroCommand</strong><br>
+<p>&#160;&#160;&#160;&#160;There are two special children types of <code>MacroCommand</code><br>
 <code>SequentialCommandsTask</code> and <code>ParallelCommandsTask</code><br></p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="./images/MacroCommand.Advanced.Model.puml.png.png" alt="MacroCommand.Advanced.Model.puml" width="1196" height="110">
+<img src="./images/MacroCommand.Advanced.Model.puml.png.png" alt="MacroCommand.Advanced.Model.puml" width="1196" height="292">
 </div>
-<div class="title">Figure 31. Advanced MacroCommand Architecture</div>
+<div class="title">Figure 30. Advanced MacroCommand Architecture</div>
 </div>
 <div class="paragraph">
-<p>which have changed the behavior of nested command processing (<strong>executeNested</strong> and <strong>rollbackNested</strong>).<br>
-As you can guess <code>SequentialCommandsTask</code> is processing nested commands in sequential way instead of <code>ParallelCommandsTask</code> doing it in parallel one.<br>
-The extra option of <code>SequentialCommandsTask</code> is possibility to transfer result of nested-command execution to the next one what is going to be executed.</p>
+<p>each ot them has the changed behavior of nested command processing [ <strong>executeNested(contexts)</strong> and <strong>rollbackNested(contexts)</strong> ].<br>
+&#160;&#160;&#160;&#160;As you can guess <code>SequentialCommandsTask</code> is processing nested commands in sequential way instead of <code>ParallelCommandsTask</code> which doing it in parallel one.<br>
+&#160;&#160;&#160;&#160;The extra option of <code>SequentialCommandsTask</code> is possibility to transfer result of nested-command execution to the next nested one which is going to be executed.</p>
+</div>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <strong>Sequential Task Execution</strong><br>
+Each command from <strong>the nest</strong> is executing one by one till end of the nest is reached or wrong command execution detected.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/SequentialCommands.doSequentialNestedCommand.puml.png.png" alt="SequentialCommands.doSequentialNestedCommand.puml" width="347" height="240">
+</div>
+<div class="title">Figure 31. SequentialCommandsTask.executeDoNested Sequence</div>
+</div>
+<div class="paragraph">
+<p>If wrong command execution is detected the rest of nested ones will be not executing just canceled (<strong>context.state=CANCEL</strong>).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/SequentialCommands.cancelSequentialNestedCommandContext.puml.png.png" alt="SequentialCommands.cancelSequentialNestedCommandContext.puml" width="312" height="214">
+</div>
+<div class="title">Figure 32. SequentialCommandsTask.cancelExecuteDoNested Sequence</div>
+</div>
+<div class="paragraph">
+<p>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <strong>Parallel Task Execution</strong><br>
+All command from <strong>the nest</strong> is executing simultaneously in separated threads and waiting for all threads. All rolled back contexts is storing to <code>context.undoParameter</code> for further rollback of rollback action when rollback went wrong. Sounds crazy but it is.<br>
+&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <strong>Parallel Task Execution Rollback</strong><br>
+All command from <strong>the nest</strong> is executing simultaneously in separated threads and waiting for all threads.</p>
 </div>
 <hr>
 </div>
@@ -872,10 +891,10 @@ The extra option of <code>SequentialCommandsTask</code> is possibility to transf
 <div class="ulist">
 <ul>
 <li>
-<p>joining commands by commands family (Abstract Factory)</p>
+<p>union commands by command types (<strong>Abstract Factory</strong>)</p>
 </li>
 <li>
-<p>building command-context before action&#8217;s execution (Builder).</p>
+<p>building command-context before action&#8217;s execution (<strong>Builder</strong>).</p>
 </li>
 </ul>
 </div>
@@ -885,7 +904,7 @@ The extra option of <code>SequentialCommandsTask</code> is possibility to transf
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-16 19:24:57 +0300
+Last updated 2026-05-18 19:00:28 +0300
 </div>
 </div>
 </body>

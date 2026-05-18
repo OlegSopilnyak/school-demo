@@ -1,0 +1,40 @@
+[plantuml,MacroCommand.doLifeCycle.puml.png,png]
+----
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:nestedContexts=MacroCommandParameter.getNestedContexts()
+results=buildResultContexts();
+group execute nested contexts {
+:current=nestedContexts.getFirst();
+while (current isn't empty ?) is (process)
+    group processing nested context {
+    :MacroCommand.getActionExecutor();
+    :CommandActionExecutor.commitAction(current);
+    :currentNestedContext.getCommand().doCommand(current);
+    :results.add(current);
+    }
+    backward: current=nestedContexts.getNext();
+endwhile (finish)
+}
+group after execution processing {
+if (results.hasFailedContext()) then (true)
+    group failed context detected {
+    :context.failed(results.findFailed().getException);
+    :rolledBack=MacroCommand.rollbackNested(results.succeedContexts());
+    :MacroCommand.updateMacroCommandParameter(context, rolledBack);
+    }
+else (false)
+    group all contexts successful {
+    :result=MacroCommand.finalCommandResult(results);
+    :context.setUndoParameter(results);
+    :context.setResult(result);
+    }
+endif
+}
+stop
+
+@enduml
+
+----

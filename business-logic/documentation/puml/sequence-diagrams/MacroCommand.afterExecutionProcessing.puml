@@ -1,0 +1,33 @@
+[plantuml,MacroCommand.afterExecutionProcessing.puml.png,png]
+----
+@startuml
+
+participant MacroCommand
+participant MacroCommandParameter
+
+activate MacroCommand
+	MacroCommand -> MacroCommand : finalCommandResult
+	activate MacroCommand
+		MacroCommand --> MacroCommand : Object
+	deactivate MacroCommand
+	MacroCommand -> MacroCommand : rollbackNested
+	activate MacroCommand
+		MacroCommand --> MacroCommand : Deque
+	deactivate MacroCommand
+	MacroCommand -> MacroCommand : updateMacroCommandParameter
+	activate MacroCommand
+		MacroCommand -> MacroCommandParameter : getNestedContexts
+		activate MacroCommandParameter
+			MacroCommandParameter --> MacroCommand : Deque
+		deactivate MacroCommandParameter
+		MacroCommand -> MacroCommandParameter : updateNestedContexts
+		activate MacroCommandParameter
+			MacroCommandParameter --> MacroCommand : void
+		deactivate MacroCommandParameter
+		MacroCommand --> MacroCommand : void
+	deactivate MacroCommand
+deactivate MacroCommand
+
+@enduml
+
+----

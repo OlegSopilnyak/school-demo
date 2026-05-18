@@ -1,0 +1,41 @@
+[plantuml,MacroCommand.undoLifeCycle.puml.png,png]
+----
+@startuml
+'https://plantuml.com/activity-diagram-beta
+
+start
+:nestedContexts=context.getUndoParameter()
+results=buildResultContexts();
+group rollback nested contexts {
+:current=nestedContexts.getFirst();
+while (current isn't empty ?) is (rollback)
+    if (current.isDone) then (rolling back)
+        group rolling back nested context {
+        :MacroCommand.getActionExecutor();
+        :CommandActionExecutor.rollbackAction(current);
+        :currentNestedContext.getCommand().undoCommand(current);
+        :results.add(current);
+    }
+    endif
+    backward: current=nestedContexts.getNext();
+endwhile (finish)
+}
+group after rollback processing {
+if (results.hasFailedContext()) then (true)
+    group failed context detected {
+    :context.failed(results.findFailed().getException);
+    :restored=MacroCommand.executeUndoneNested(results.succeedContexts());
+    :MacroCommand.updateMacroCommandParameter(context, restored);
+    }
+else (false)
+    group all contexts successful {
+    :context.setResult(null);
+    :context.setState(UNDONE);
+    }
+endif
+}
+stop
+
+@enduml
+
+----
