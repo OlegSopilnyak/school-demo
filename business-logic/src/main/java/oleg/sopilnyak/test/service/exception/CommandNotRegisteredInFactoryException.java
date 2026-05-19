@@ -1,6 +1,6 @@
 package oleg.sopilnyak.test.service.exception;
 
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 
 /**

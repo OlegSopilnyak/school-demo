@@ -1,0 +1,61 @@
+[plantuml,CommandsFactoriesFarm.Model.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class CommandContextDeserializer {
+	{field} -errorDeserializer : ExceptionDeserializer
+	{field} -parameterDeserializer : ParameterDeserializer
+	{field} -resultDeserializer : ResultDeserializer
+	{method} +deserialize ( jsonParser : JsonParser , ignored : DeserializationContext ) : Context
+}
+
+
+class CommandsFactoriesFarm {
+	{field} {static} +FARM_BEAN_NAME : String
+	{field} {static} +NAME : String
+	{method} +command ( commandId : String ) : RootCommand
+	{method} +findCommandFactory ( factoryName : String ) : Optional
+	{method} +makeCommandContext ( commandId : String , input : Input ) : Context
+	{method} +register ( factory : CommandsFactory ) : void
+}
+
+
+interface CommandsFactory {
+	{method}  {abstract} +command ( commandId : String ) : RootCommand
+	{method} +makeCommandContext ( commandId : String , input : Input ) : Context
+}
+
+
+interface JsonContextFields {
+	{field} {static} +COMMAND_FAMILY_FIELD_NAME : String
+	{field} {static} +COMMAND_FIELD_NAME : String
+	{field} {static} +COMMAND_ID_FIELD_NAME : String
+	{field} {static} +DURATION_FIELD_NAME : String
+	{field} {static} +ERROR_FIELD_NAME : String
+	{field} {static} +HISTORY_FIELD_NAME : String
+	{field} {static} +REDO_INPUT_FIELD_NAME : String
+	{field} {static} +RESULT_FIELD_NAME : String
+	{field} {static} +STARTED_AT_FIELD_NAME : String
+	{field} {static} +STATE_FIELD_NAME : String
+	{field} {static} +UNDO_INPUT_FIELD_NAME : String
+}
+
+
+class JsonContextModule {
+	{method} +setupModule ( setupContext : SetupContext ) : void
+}
+
+
+
+
+CommandContextDeserializer *--  CommandsFactoriesFarm : farm
+CommandContextDeserializer ..|>  JsonContextFields
+CommandsFactoriesFarm "1" o-- "0..*"  CommandsFactory : commandsFactoriesMap
+CommandsFactoriesFarm ..|>  CommandsFactory
+JsonContextModule *--  CommandsFactoriesFarm : farm
+
+hide fields
+
+@enduml
+----

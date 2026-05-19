@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.command.factory.farm;
 
 import static java.util.Objects.isNull;
 
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;

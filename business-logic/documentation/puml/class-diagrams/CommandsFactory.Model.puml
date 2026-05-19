@@ -1,0 +1,100 @@
+[plantuml,CommandsFactory.Model.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+left to right direction
+
+
+abstract class AbstractCommandFactory {
+	{field} -commandMap : Map
+	{method} +command ( commandId : String ) : RootCommand
+	{method} +commandIds () : Collection
+}
+
+
+class AuthorityPersonCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+interface CommandsFactory {
+	{method}  {abstract} +command ( commandId : String ) : RootCommand
+	{method} +commandFamily () : Class
+	{method}  {abstract} +commandIds () : Collection
+	{method}  {abstract} +getName () : String
+	{method} +getSize () : int
+	{method} +makeCommandContext ( commandId : String , input : Input ) : Context
+}
+
+
+class CourseCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+abstract class EducationCommandsFactory {
+}
+
+
+class FacultyCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+abstract class OrganizationCommandsFactory {
+}
+
+
+class PrincipalProfileCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+abstract class ProfileCommandsFactory {
+}
+
+
+class StudentCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+class StudentProfileCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+class StudentsGroupCommandsFactory {
+	{field} {static} +NAME : String
+	{method} +commandFamily () : Class
+}
+
+
+
+
+AbstractCommandFactory ..|>  CommandsFactory
+AuthorityPersonCommandsFactory --|>  OrganizationCommandsFactory
+CourseCommandsFactory --|>  EducationCommandsFactory
+EducationCommandsFactory --|>  AbstractCommandFactory
+EducationCommandsFactory ..|>  CommandsFactory
+FacultyCommandsFactory --|>  OrganizationCommandsFactory
+OrganizationCommandsFactory --|>  AbstractCommandFactory
+OrganizationCommandsFactory ..|>  CommandsFactory
+PrincipalProfileCommandsFactory --|>  ProfileCommandsFactory
+ProfileCommandsFactory --|>  AbstractCommandFactory
+ProfileCommandsFactory ..|>  CommandsFactory
+StudentCommandsFactory --|>  EducationCommandsFactory
+StudentProfileCommandsFactory --|>  ProfileCommandsFactory
+StudentsGroupCommandsFactory --|>  OrganizationCommandsFactory
+
+hide fields
+
+@enduml
+----

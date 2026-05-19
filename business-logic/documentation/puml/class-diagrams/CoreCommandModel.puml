@@ -3,6 +3,21 @@
 @startuml
 !pragma layout smetana
 
+class CommandContextDeserializer {
+	{field} -errorDeserializer : ExceptionDeserializer
+	{field} -farm : CommandsFactoriesFarm
+	{field} -parameterDeserializer : ParameterDeserializer
+	{field} -resultDeserializer : ResultDeserializer
+	{method} +deserialize ( jsonParser : JsonParser , ignored : DeserializationContext ) : Context
+}
+
+
+class CommandContextSerializer {
+	{field} -exceptionSerializer : ExceptionSerializer
+	{method} +serialize ( context : Context , generator : JsonGenerator , provider : SerializerProvider ) : void
+}
+
+
 interface CommandExecutable {
 	{method}  {abstract} +createContext () : Context
 	{method}  {abstract} +createContext ( input : Input ) : Context
@@ -51,6 +66,21 @@ interface Context {
 	{method}  {abstract} +setResult ( value : Object ) : void
 	{method}  {abstract} +setState ( state : State ) : void
 	{method} +stateIs ( state : State ) : boolean
+}
+
+
+interface JsonContextFields {
+	{field} {static} +COMMAND_FAMILY_FIELD_NAME : String
+	{field} {static} +COMMAND_FIELD_NAME : String
+	{field} {static} +COMMAND_ID_FIELD_NAME : String
+	{field} {static} +DURATION_FIELD_NAME : String
+	{field} {static} +ERROR_FIELD_NAME : String
+	{field} {static} +HISTORY_FIELD_NAME : String
+	{field} {static} +REDO_INPUT_FIELD_NAME : String
+	{field} {static} +RESULT_FIELD_NAME : String
+	{field} {static} +STARTED_AT_FIELD_NAME : String
+	{field} {static} +STATE_FIELD_NAME : String
+	{field} {static} +UNDO_INPUT_FIELD_NAME : String
 }
 
 
@@ -104,6 +134,8 @@ interface StateChangedListener {
 
 
 
+CommandContextDeserializer ..|>  JsonContextFields
+CommandContextSerializer ..|>  JsonContextFields
 CompositeCommand ..|>  RootCommand
 RootCommand ..|>  CommandExecutable
 RootCommand ..|>  NestedCommand

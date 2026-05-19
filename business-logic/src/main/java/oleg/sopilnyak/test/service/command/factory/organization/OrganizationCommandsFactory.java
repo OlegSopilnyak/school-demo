@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.factory.organization.base;
+package oleg.sopilnyak.test.service.command.factory.organization;
 
-import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.AbstractCommandFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.organization.base.OrganizationCommand;
 
 import java.util.Collection;

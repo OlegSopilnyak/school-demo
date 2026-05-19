@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.factory.base;
+package oleg.sopilnyak.test.service.command.factory;
 
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 

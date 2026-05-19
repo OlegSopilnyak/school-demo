@@ -1,8 +1,7 @@
 package oleg.sopilnyak.test.service.command.factory.organization;
 
-import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.organization.base.OrganizationCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.AbstractCommandFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.organization.AuthorityPersonCommand;
 

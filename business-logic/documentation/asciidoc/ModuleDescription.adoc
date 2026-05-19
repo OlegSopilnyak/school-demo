@@ -256,3 +256,24 @@ All command from *the nest* is executing simultaneously in separated threads and
 * union commands by command types (*Abstract Factory*)
 * building command-context before action's execution (*Builder*).
 
+.Commands Factory Architecture
+[%collapsible]
+====
+.Architecture
+include::../puml/class-diagrams/CommandsFactory.Model.puml[]
+====
+
+During boot application starting *Spring* scans particular package of *Java classes* `@ComponentScan("oleg.sopilnyak.test.service.command.executable")`
+
+.Command.doCommand Activity Diagram
+include::../puml/class-diagrams/CommandsFactory.Configuration.Model.puml[]
+and distributing found commands among *CommandsFactory* instances according the *Command* type. +
+{tab}Then it's possible to get *Command* instance by command ID from particular *CommandsFactory*. To support correct *JSON* deserialization of *CommandContext* was designed and developed *CommandsFactoriesFarm* which union all *CommandsFactory* instances. Farm can be used in any place of the module to do something not related to particular *Command* type.
+
+.Commands Factories Farm Architecture
+[%collapsible]
+====
+.Architecture
+include::../puml/class-diagrams/CommandsFactoriesFarm.Model.puml[]
+====
+

@@ -1,0 +1,22 @@
+[plantuml,CommandsFactory.Configuration.Model.puml.png,png]
+----
+@startuml
+!pragma layout smetana
+
+class SchoolCommandsConfiguration {
+	{method} +authorityPersonCommandFactory ( commands : Collection ) : CommandsFactory
+	{method} +courseCommandsFactory ( commands : Collection ) : CommandsFactory
+	{method} +facultyCommandFactory ( commands : Collection ) : CommandsFactory
+	{method} +principalProfileCommandsFactory ( commands : Collection ) : CommandsFactory
+	{method} +studentProfileCommandsFactory ( commands : Collection ) : CommandsFactory
+	{method} +studentsCommandsFactory ( commands : Collection ) : CommandsFactory
+	{method} +studentsGroupCommandFactory ( commands : Collection ) : CommandsFactory
+}
+
+
+
+
+
+
+@enduml
+----

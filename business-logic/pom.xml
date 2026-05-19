@@ -460,6 +460,69 @@
                             <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
                         </configuration>
                     </execution>
+                    <execution>
+                        <id>generate-commands-factories-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>CommandsFactory.Model.puml</outputFilename>
+                            <scanPackages>oleg.sopilnyak.test.service.command.factory</scanPackages>
+                            <blacklistRegexp>.*Farm</blacklistRegexp>
+                            <hideFields>true</hideFields>
+                            <additionalPlantUmlConfigs>
+                                <additionalPlantUmlConfig>left to right direction</additionalPlantUmlConfig>
+                            </additionalPlantUmlConfigs>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-commands-factories-configuration-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>CommandsFactory.Configuration.Model.puml</outputFilename>
+                            <whitelistRegexp>oleg.sopilnyak.test.service.command.configurations.SchoolCommandsConfiguration</whitelistRegexp>
+                            <methodBlacklistRegexp>^((?!Factory).)*$</methodBlacklistRegexp>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>generate-commands-factories-farm-class-diagram</id>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                        <phase>generate-test-resources</phase>
+                        <configuration>
+                            <useSmetana>true</useSmetana>
+                            <outputDirectory>${project.basedir}/documentation/puml/class-diagrams</outputDirectory>
+                            <outputFilename>CommandsFactoriesFarm.Model.puml</outputFilename>
+                            <scanPackages>
+                                <scanPackage>oleg.sopilnyak.test.service.command.factory</scanPackage>
+                                <scanPackage>oleg.sopilnyak.test.service.command.factory.farm</scanPackage>
+                                <scanPackage>oleg.sopilnyak.test.service.command.type.core.json</scanPackage>
+                            </scanPackages>
+                            <blacklistRegexp>
+                                .*(Student.*|Course.*|Education.*|Serializer|Abstract.*|Authority.*|Faculty.*|Organization.*|Profile.*)
+                            </blacklistRegexp>
+                            <methodBlacklistRegexp>commandFamily|getSize|commandIds|getName</methodBlacklistRegexp>
+                            <hideFields>true</hideFields>
+                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
+                            <useShortClassNames>true</useShortClassNames>
+                            <maxVisibilityMethods>PUBLIC</maxVisibilityMethods>
+                        </configuration>
+                    </execution>
                     <!--
                     UML Sequence Diagrams
                     -->
@@ -557,7 +620,7 @@
                         <configuration>
                             <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
                             <outputFilename>RootCommand.createContext.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.service.command.factory.base.CommandsFactory</startClass>
+                            <startClass>oleg.sopilnyak.test.service.command.factory.CommandsFactory</startClass>
                             <startMethod>makeCommandContext</startMethod>
                             <classBlacklistRegexp>.*(Builder)</classBlacklistRegexp>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
@@ -716,24 +779,6 @@
                             <startMethod>executeUndo</startMethod>
                             <classBlacklistRegexp>.*(Logger|IOBase)</classBlacklistRegexp>
                             <methodBlacklistRegexp>.*(getLog.*|etState|checkNull.*|after.*)</methodBlacklistRegexp>
-                            <enableAsciidocWrapper>true</enableAsciidocWrapper>
-                            <showReturnTypes>true</showReturnTypes>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>generate-business-composite-command-nested-undo-after-execution-diagram</id>
-                        <goals>
-                            <goal>generateSequenceDiagram</goal>
-                        </goals>
-                        <phase>generate-test-resources</phase>
-                        <configuration>
-                            <outputDirectory>${project.basedir}/documentation/puml/sequence-diagrams</outputDirectory>
-                            <outputFilename>MacroCommand.afterRollbackProcessing.puml</outputFilename>
-                            <startClass>oleg.sopilnyak.test.service.command.executable.core.MacroCommand</startClass>
-                            <startMethod>afterRollbackProcessing</startMethod>
-                            <classBlacklistRegexp>.*(Logger|IOBase|Input|NestedCommand|Context|Function|Integer|Optional|Collectors|Stream|AtomicReference|Deque)</classBlacklistRegexp>
-                            <methodBlacklistRegexp>.*(getLog.*|is.*|stream)</methodBlacklistRegexp>
-                            <ignoreStandardClasses>false</ignoreStandardClasses>
                             <enableAsciidocWrapper>true</enableAsciidocWrapper>
                             <showReturnTypes>true</showReturnTypes>
                         </configuration>

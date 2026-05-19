@@ -1,4 +1,4 @@
-package oleg.sopilnyak.test.service.command.factory.base;
+package oleg.sopilnyak.test.service.command.factory;
 
 import static java.util.Objects.isNull;
 
@@ -28,6 +28,7 @@ public interface CommandsFactory<C extends RootCommand<?>> {
      * @return command family class value
      * @param <F> class of command's family
      * @see RootCommand#commandFamily()
+     * @see oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm#register(CommandsFactory)
      */
     default <F extends RootCommand> Class<F> commandFamily() {
         throw new UnsupportedOperationException("Please declare commands family type.");

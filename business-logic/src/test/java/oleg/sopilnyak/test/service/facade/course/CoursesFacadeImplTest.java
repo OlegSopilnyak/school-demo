@@ -30,8 +30,8 @@ import oleg.sopilnyak.test.service.command.executable.education.course.FindCours
 import oleg.sopilnyak.test.service.command.executable.education.course.FindRegisteredCoursesCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.RegisterStudentToCourseCommand;
 import oleg.sopilnyak.test.service.command.executable.education.course.UnRegisterStudentFromCourseCommand;
-import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.education.CourseCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.io.Input;
 import oleg.sopilnyak.test.service.command.type.core.Context;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;

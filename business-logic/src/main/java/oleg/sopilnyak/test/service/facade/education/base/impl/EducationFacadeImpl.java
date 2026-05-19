@@ -2,7 +2,7 @@ package oleg.sopilnyak.test.service.facade.education.base.impl;
 
 import oleg.sopilnyak.test.school.common.business.facade.education.base.EducationFacade;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.education.base.EducationCommand;
 import oleg.sopilnyak.test.service.facade.ActionFacade;
 

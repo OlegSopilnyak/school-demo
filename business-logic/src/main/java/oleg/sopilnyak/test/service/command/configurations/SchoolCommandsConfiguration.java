@@ -8,9 +8,9 @@ import oleg.sopilnyak.test.authentication.configuration.SchoolAuthenticationConf
 import oleg.sopilnyak.test.service.command.executable.core.ParallelCommandsTask;
 import oleg.sopilnyak.test.service.command.executable.core.executor.CommandActionExecutor;
 import oleg.sopilnyak.test.service.command.executable.core.executor.messaging.local.LocalQueueCommandExecutor;
-import oleg.sopilnyak.test.service.command.factory.CourseCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.StudentCommandsFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.education.CourseCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.education.StudentCommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.farm.CommandsFactoriesFarm;
 import oleg.sopilnyak.test.service.command.factory.organization.AuthorityPersonCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.organization.FacultyCommandsFactory;
@@ -18,7 +18,7 @@ import oleg.sopilnyak.test.service.command.factory.organization.StudentsGroupCom
 import oleg.sopilnyak.test.service.command.factory.profile.PrincipalProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.factory.profile.StudentProfileCommandsFactory;
 import oleg.sopilnyak.test.service.command.type.core.Context;
-import oleg.sopilnyak.test.service.command.type.core.JsonContextModule;
+import oleg.sopilnyak.test.service.command.type.core.json.JsonContextModule;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.CourseCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;

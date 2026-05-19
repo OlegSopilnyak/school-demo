@@ -1,7 +1,7 @@
-package oleg.sopilnyak.test.service.command.factory.profile.base;
+package oleg.sopilnyak.test.service.command.factory.profile;
 
-import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
-import oleg.sopilnyak.test.service.command.factory.base.CommandsFactory;
+import oleg.sopilnyak.test.service.command.factory.AbstractCommandFactory;
+import oleg.sopilnyak.test.service.command.factory.CommandsFactory;
 import oleg.sopilnyak.test.service.command.type.profile.base.ProfileCommand;
 
 import java.util.Collection;
@@ -14,7 +14,8 @@ import java.util.Collection;
  * @see ProfileCommand
  */
 public abstract class ProfileCommandsFactory<T extends ProfileCommand<?>>
-        extends AbstractCommandFactory<T> {
+        extends AbstractCommandFactory<T>
+        implements CommandsFactory<T> {
     protected ProfileCommandsFactory(Collection<T> commands) {
         super.applyFactoryCommands(commands);
     }

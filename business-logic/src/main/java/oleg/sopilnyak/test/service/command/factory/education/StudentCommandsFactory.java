@@ -1,6 +1,5 @@
-package oleg.sopilnyak.test.service.command.factory;
+package oleg.sopilnyak.test.service.command.factory.education;
 
-import oleg.sopilnyak.test.service.command.factory.base.AbstractCommandFactory;
 import oleg.sopilnyak.test.service.command.type.core.RootCommand;
 import oleg.sopilnyak.test.service.command.type.education.StudentCommand;
 
@@ -9,11 +8,11 @@ import java.util.Collection;
 /**
  * Commands factory for students syb-system
  */
-public class StudentCommandsFactory extends AbstractCommandFactory<StudentCommand<?>> {
+public class StudentCommandsFactory extends EducationCommandsFactory<StudentCommand<?>> {
     public static final String NAME = "Students";
 
     public StudentCommandsFactory(Collection<StudentCommand<?>> commands) {
-        super.applyFactoryCommands(commands);
+        super(commands);
     }
 
     /**

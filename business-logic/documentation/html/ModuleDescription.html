@@ -577,7 +577,7 @@ and <strong>MessagesProcessor</strong> for these purposes.</p>
 <div class="content">
 <div class="imageblock">
 <div class="content">
-<img src="./images/CoreCommandModel.puml.png.png" alt="CoreCommandModel.puml" width="1505" height="956">
+<img src="./images/CoreCommandModel.puml.png.png" alt="CoreCommandModel.puml" width="2617" height="956">
 </div>
 <div class="title">Figure 8. Core Commands Architecture</div>
 </div>
@@ -898,13 +898,37 @@ All command from <strong>the nest</strong> is executing simultaneously in separa
 </li>
 </ul>
 </div>
+<details>
+<summary class="title">Commands Factory Architecture</summary>
+<div class="content">
+<div class="imageblock">
+<div class="content">
+<img src="./images/CommandsFactory.Model.puml.png.png" alt="CommandsFactory.Model.puml" width="1396" height="531">
+</div>
+<div class="title">Figure 33. Architecture</div>
+</div>
+</div>
+</details>
+<div class="paragraph">
+<p>During boot application starting <strong>Spring</strong> scans particular package of <strong>Java classes</strong> <code>@ComponentScan("oleg.sopilnyak.test.service.command.executable")</code></p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="./images/CommandsFactory.Configuration.Model.puml.png.png" alt="CommandsFactory.Configuration.Model.puml" width="540" height="189">
+</div>
+<div class="title">Figure 34. Command.doCommand Activity Diagram</div>
+</div>
+<div class="paragraph">
+<p>and distributing found commands among <strong>CommandsFactory</strong> instances according the <strong>Command</strong> type.<br>
+&#160;&#160;&#160;&#160;Then it&#8217;s possible to get <strong>Command</strong> instance by command ID from particular <strong>CommandsFactory</strong>. To support correct <strong>JSON</strong> deserialization of <strong>CommandContext</strong> was designed and developed <strong>CommandsFactoriesFarm</strong> which union all <strong>CommandsFactory</strong> instances. Farm can be used in any place of the module to do something not linked to particular <strong>Command</strong> type.</p>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2026-05-18 19:00:28 +0300
+Last updated 2026-05-19 11:01:58 +0300
 </div>
 </div>
 </body>
